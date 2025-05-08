@@ -7,7 +7,7 @@ use crate::{
 
 use super::INSTRUCTION_IDX_INCREASE_ADDITIONAL_VALIDATOR_STAKE;
 
-#[generic_array_struct(pub)]
+#[generic_array_struct(builder pub)]
 #[repr(transparent)]
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

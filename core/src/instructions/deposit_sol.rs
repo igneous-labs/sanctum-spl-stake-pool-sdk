@@ -10,7 +10,7 @@ use super::INSTRUCTION_IDX_DEPOSIT_SOL;
 ///  - `[s]`  sol deposit authority
 ///
 /// Otherwise, this is the full instruction accounts array
-#[generic_array_struct(pub)]
+#[generic_array_struct(builder pub)]
 #[repr(transparent)]
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

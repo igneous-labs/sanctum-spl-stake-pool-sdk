@@ -3,7 +3,7 @@ use generic_array_struct::generic_array_struct;
 use super::INSTRUCTION_IDX_UPDATE_VALIDATOR_LIST_BALANCE;
 use crate::{StakePool, STAKE_PROGRAM, SYSVAR_CLOCK, SYSVAR_STAKE_HISTORY};
 
-#[generic_array_struct(pub)]
+#[generic_array_struct(builder pub)]
 #[repr(transparent)]
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

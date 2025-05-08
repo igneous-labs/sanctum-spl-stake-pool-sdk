@@ -5,7 +5,7 @@ use crate::{StakePool, STAKE_PROGRAM, SYSVAR_CLOCK};
 use super::INSTRUCTION_IDX_WITHDRAW_STAKE;
 
 /// The stake_to_receive account must be a rent exempt uninitialized stake account
-#[generic_array_struct(pub)]
+#[generic_array_struct(builder pub)]
 #[repr(transparent)]
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

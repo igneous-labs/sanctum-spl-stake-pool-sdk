@@ -4,7 +4,7 @@ use crate::{StakePool, STAKE_PROGRAM, SYSVAR_CLOCK, SYSVAR_STAKE_HISTORY};
 
 use super::INSTRUCTION_IDX_DEPOSIT_STAKE;
 
-#[generic_array_struct(pub)]
+#[generic_array_struct(builder pub)]
 #[repr(transparent)]
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

@@ -1,0 +1,27 @@
+[package]
+name = "sanctum-spl-stake-pool-core"
+version = "0.1.0"
+edition = { workspace = true }
+
+[features]
+default = []
+serde = ["dep:serde", "dep:serde_bytes"]
+std = ["borsh/std", "serde?/std", "serde_bytes?/std"]
+wasm = ["std", "serde", "dep:tsify-next", "dep:wasm-bindgen"]
+
+[dependencies]
+borsh = { workspace = true, default-features = false, features = ["derive"] }
+const-crypto = { workspace = true }
+generic-array-struct = { workspace = true }
+sanctum-fee-ratio = { workspace = true }
+sanctum-u64-ratio = { workspace = true }
+
+# optional
+serde = { workspace = true, default-features = false, features = ["derive"], optional = true }
+serde_bytes = { workspace = true, default-features = false, optional = true }
+tsify-next = { workspace = true, default-features = false, features = ["js"] , optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+
+[dev-dependencies]
+data-encoding = { workspace = true, features = ["alloc"] }
+serde_json = { workspace = true }

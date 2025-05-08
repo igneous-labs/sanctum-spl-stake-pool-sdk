@@ -1,0 +1,54 @@
+mod cleanup_removed_validator_entries;
+mod deposit_sol;
+mod deposit_stake;
+mod increase_additional_validator_stake;
+mod initialize;
+mod update_stake_pool_balance;
+mod update_validator_list_balance;
+mod withdraw_sol;
+mod withdraw_stake;
+
+pub use cleanup_removed_validator_entries::*;
+pub use deposit_sol::*;
+pub use deposit_stake::*;
+pub use increase_additional_validator_stake::*;
+pub use initialize::*;
+pub use update_stake_pool_balance::*;
+pub use update_validator_list_balance::*;
+pub use withdraw_sol::*;
+pub use withdraw_stake::*;
+
+use crate::internal_utils::seqconsts;
+
+seqconsts!(
+    ty = u8;
+    count = INSTRUCTION_COUNT;
+
+    INSTRUCTION_IDX_INITIALIZE,
+    INSTRUCTION_IDX_ADD_VALIDATOR_TO_POOL,
+    INSTRUCTION_IDX_REMOVE_VALIDATOR_FROM_POOL,
+    INSTRUCTION_IDX_DECREASE_VALIDATOR_STAKE,
+    INSTRUCTION_IDX_INCREASE_VALIDATOR_STAKE,
+    INSTRUCTION_IDX_SET_PREFERRED_VALIDATOR,
+    INSTRUCTION_IDX_UPDATE_VALIDATOR_LIST_BALANCE,
+    INSTRUCTION_IDX_UPDATE_STAKE_POOL_BALANCE,
+    INSTRUCTION_IDX_CLEANUP_REMOVED_VALIDATOR_ENTRIES,
+    INSTRUCTION_IDX_DEPOSIT_STAKE,
+    INSTRUCTION_IDX_WITHDRAW_STAKE,
+    INSTRUCTION_IDX_SET_MANAGER,
+    INSTRUCTION_IDX_SET_FEE,
+    INSTRUCTION_IDX_SET_STAKER,
+    INSTRUCTION_IDX_DEPOSIT_SOL,
+    INSTRUCTION_IDX_SET_FUNDING_AUTHORITY,
+    INSTRUCTION_IDX_WITHDRAW_SOL,
+    INSTRUCTION_IDX_CREATE_TOKEN_METADATA,
+    INSTRUCTION_IDX_UPDATE_TOKEN_METADATA,
+    INSTRUCTION_IDX_INCREASE_ADDITIONAL_VALIDATOR_STAKE,
+    INSTRUCTION_IDX_DECREASE_ADDITIONAL_VALIDATOR_STAKE,
+    INSTRUCTION_IDX_DECREASE_VALIDATOR_STAKE_WITH_RESERVE,
+    INSTRUCTION_IDX_REDELEGATE,
+    INSTRUCTION_IDX_DEPOSIT_STAKE_WITH_SLIPPAGE,
+    INSTRUCTION_IDX_WITHDRAW_STAKE_WITH_SLIPPAGE,
+    INSTRUCTION_IDX_DEPOSIT_SOL_WITH_SLIPPAGE,
+    INSTRUCTION_IDX_WITHDRAW_SOL_WITH_SLIPPAGE,
+);

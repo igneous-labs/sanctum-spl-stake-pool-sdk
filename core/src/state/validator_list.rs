@@ -79,10 +79,14 @@ impl<'a> ValidatorList<'a> {
         let header_ext = ValidatorListHeaderExt {
             account_type: *account_type,
             max_validators: *max_validators,
-            num_validators: validators
-                .len()
-                .try_into()
-                .map_err(|e| borsh::io::Error::new(borsh::io::ErrorKind::InvalidData, e))?,
+            num_validators: validators.len().try_into().map_err(|_e| {
+                // use static string instead of arg `e` here because borsh is broken between no-std and std:
+                // https://github.com/near/borsh-rs/issues/342
+                borsh::io::Error::new(
+                    borsh::io::ErrorKind::InvalidData,
+                    "validators len u32 overflow",
+                )
+            })?,
         };
         header_ext.serialize(&mut writer)?;
 

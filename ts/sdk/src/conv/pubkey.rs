@@ -1,6 +1,6 @@
 use wasm_bindgen::{intern, JsError};
 
-pub(crate) fn pubkey_from_js(s: &str) -> Result<[u8; 32], JsError> {
+pub fn pubkey_from_js(s: &str) -> Result<[u8; 32], JsError> {
     let mut res = [0u8; 32];
     let written = bs58::decode(s)
         .onto(res.as_mut_slice())
@@ -12,7 +12,7 @@ pub(crate) fn pubkey_from_js(s: &str) -> Result<[u8; 32], JsError> {
     }
 }
 
-pub(crate) fn pubkey_to_js(pubkey: &[u8; 32]) -> Box<str> {
+pub fn pubkey_to_js(pubkey: &[u8; 32]) -> Box<str> {
     const_bs58_to_str::<32, 45>(pubkey)
 }
 

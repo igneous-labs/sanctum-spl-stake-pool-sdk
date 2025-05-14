@@ -39,7 +39,7 @@ impl AccountMeta {
     }
 }
 
-pub(crate) fn keys_signer_writer_to_account_metas<const N: usize>(
+pub fn keys_signer_writer_to_account_metas<const N: usize>(
     keys: &[&[u8; 32]; N],
     signer: &[bool; N],
     writer: &[bool; N],
@@ -53,7 +53,7 @@ pub(crate) fn keys_signer_writer_to_account_metas<const N: usize>(
     })
 }
 
-pub(crate) enum Role {
+pub enum Role {
     Readonly,
     Writable,
     ReadonlySigner,
@@ -61,7 +61,7 @@ pub(crate) enum Role {
 }
 
 impl Role {
-    pub(crate) const fn from_signer_writable(signer: bool, writable: bool) -> Self {
+    pub const fn from_signer_writable(signer: bool, writable: bool) -> Self {
         match (signer, writable) {
             (true, true) => Self::WritableSigner,
             (true, false) => Self::ReadonlySigner,
@@ -70,7 +70,7 @@ impl Role {
         }
     }
 
-    pub(crate) const fn as_u8(&self) -> u8 {
+    pub const fn as_u8(&self) -> u8 {
         match self {
             Self::Readonly => 0,
             Self::Writable => 1,

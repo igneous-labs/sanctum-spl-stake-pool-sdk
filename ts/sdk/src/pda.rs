@@ -112,7 +112,7 @@ pub fn find_ephemeral_stake_account_pda(
         .ok_or_else(no_valid_pda)
 }
 
-pub(crate) fn find_withdraw_auth_pda_internal(
+pub fn find_withdraw_auth_pda_internal(
     program_id: &[u8; 32],
     stake_pool_addr: &[u8; 32],
 ) -> Option<([u8; 32], u8)> {
@@ -120,7 +120,7 @@ pub(crate) fn find_withdraw_auth_pda_internal(
     find_pda(&[s1.as_slice(), s2.as_slice()], program_id)
 }
 
-pub(crate) fn find_deposit_auth_pda_internal(
+pub fn find_deposit_auth_pda_internal(
     program_id: &[u8; 32],
     stake_pool_addr: &[u8; 32],
 ) -> Option<([u8; 32], u8)> {
@@ -198,7 +198,7 @@ fn create_pda(
     }
 }
 
-pub(crate) fn find_pda(seeds: &[&[u8]], program_id: &[u8; 32]) -> Option<([u8; 32], u8)> {
+pub fn find_pda(seeds: &[&[u8]], program_id: &[u8; 32]) -> Option<([u8; 32], u8)> {
     // Reference: https://github.com/anza-xyz/solana-sdk/blob/4e30766b8d327f0191df6490e48d9ef521956495/pubkey/src/lib.rs#L633
     // if you look at the impl, 0 is not a valid bump seed, only 1-255 are
     (1..=u8::MAX)

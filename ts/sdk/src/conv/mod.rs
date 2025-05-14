@@ -1,3 +1,3 @@
 mod pubkey;
 
-pub(crate) use pubkey::*;
+pub use pubkey::*;

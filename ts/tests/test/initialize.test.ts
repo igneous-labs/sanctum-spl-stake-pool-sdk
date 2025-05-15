@@ -1,7 +1,18 @@
 import { describe, it, assert } from "vitest";
 import { readTestFixturesAccPk, readTestFixturesKeypair } from "./utils";
-import * as kit from "@solana/kit";
 import { initializeIx } from "@sanctumso/spl-stake-pool";
+import {
+  appendTransactionMessageInstructions,
+  blockhash,
+  compileTransaction,
+  createSolanaRpc,
+  createTransactionMessage,
+  getBase64EncodedWireTransaction,
+  pipe,
+  setTransactionMessageFeePayer,
+  setTransactionMessageLifetimeUsingBlockhash,
+  type IInstruction,
+} from "@solana/kit";
 
 describe("initialize", async () => {
   // Requires a local validator running with test fixtures.
@@ -43,33 +54,29 @@ describe("initialize", async () => {
         referralFee: 0,
         maxValidators: 10,
       }
-    ) as unknown as kit.IInstruction;
+    ) as unknown as IInstruction;
 
-    let rpcClient = kit.createSolanaRpc("http://localhost:8899");
+    let rpcClient = createSolanaRpc("http://localhost:8899");
 
-    const simulatedTx = kit.pipe(
-      kit.createTransactionMessage({
+    const simulatedTx = pipe(
+      createTransactionMessage({
         version: 0,
       }),
-      (txm) => kit.appendTransactionMessageInstructions([ix], txm),
+      (txm) => appendTransactionMessageInstructions([ix], txm),
+      (txm) => setTransactionMessageFeePayer(keypair.address, txm),
       (txm) =>
-        kit.setTransactionMessageFeePayer(
-          keypair.address as kit.Address<string>,
-          txm
-        ),
-      (txm) =>
-        kit.setTransactionMessageLifetimeUsingBlockhash(
+        setTransactionMessageLifetimeUsingBlockhash(
           {
-            blockhash: kit.blockhash("11111111111111111111111111111111"),
+            blockhash: blockhash("11111111111111111111111111111111"),
             lastValidBlockHeight: 0n,
           },
           txm
         ),
-      kit.compileTransaction
+      compileTransaction
     );
 
     const simulation = await rpcClient
-      .simulateTransaction(kit.getBase64EncodedWireTransaction(simulatedTx), {
+      .simulateTransaction(getBase64EncodedWireTransaction(simulatedTx), {
         encoding: "base64",
         sigVerify: false,
         replaceRecentBlockhash: true,

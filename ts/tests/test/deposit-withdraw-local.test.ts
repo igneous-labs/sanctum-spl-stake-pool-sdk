@@ -1,4 +1,3 @@
-import * as kit from "@solana/kit";
 import { describe, it, assert } from "vitest";
 import {
   readTestFixturesAccPk,
@@ -17,6 +16,21 @@ import {
   withdrawSolIxFromStakePool,
   withdrawStakeIxFromStakePool,
 } from "@sanctumso/spl-stake-pool";
+import {
+  address,
+  appendTransactionMessageInstructions,
+  createSolanaRpc,
+  createSolanaRpcSubscriptions,
+  createTransactionMessage,
+  getBase64Encoder,
+  getU64Codec,
+  pipe,
+  sendAndConfirmTransactionFactory,
+  setTransactionMessageFeePayerSigner,
+  setTransactionMessageLifetimeUsingBlockhash,
+  signTransactionMessageWithSigners,
+  type IInstruction,
+} from "@solana/kit";
 
 /**
  * Requires a local validator running with test fixtures.
@@ -37,20 +51,20 @@ describe("picosol-quote-sim-local", async () => {
     const referralToken = readTestFixturesAccPk("referral-picosol-token");
     const signerToken = readTestFixturesAccPk("signer-picosol-token");
 
-    let rpcClient = kit.createSolanaRpc("http://localhost:8899");
-    const rpcClientSubscriptions = kit.createSolanaRpcSubscriptions(
+    let rpcClient = createSolanaRpc("http://localhost:8899");
+    const rpcClientSubscriptions = createSolanaRpcSubscriptions(
       "ws://localhost:8900"
     );
 
     // Fetching the stake pool state for testing to enable multiple tests running on same validator
     const accountJson = readTestFixturesJsonFile("picosol-stake-pool");
     const stakePoolInfoPre = await rpcClient
-      .getAccountInfo(kit.address(accountJson.pubkey), {
+      .getAccountInfo(address(accountJson.pubkey), {
         encoding: "base64",
       })
       .send();
     const stakePoolDataPre = new Uint8Array(
-      kit.getBase64Encoder().encode(stakePoolInfoPre.value!.data[0])
+      getBase64Encoder().encode(stakePoolInfoPre.value!.data[0])
     );
     const stakePoolHandlePre = deserStakePool(stakePoolDataPre);
     const stakePoolPre = getStakePool(stakePoolHandlePre);
@@ -65,7 +79,7 @@ describe("picosol-quote-sim-local", async () => {
     const managerFeeTokenBalanceBefore = BigInt(
       (
         await rpcClient
-          .getTokenAccountBalance(kit.address(stakePoolPre.managerFeeAccount))
+          .getTokenAccountBalance(address(stakePoolPre.managerFeeAccount))
           .send()
       ).value.amount
     );
@@ -87,18 +101,18 @@ describe("picosol-quote-sim-local", async () => {
       {
         depositLamports: 1000000n,
       }
-    ) as unknown as kit.IInstruction;
+    ) as unknown as IInstruction;
 
-    const tx = kit.pipe(
-      kit.createTransactionMessage({
+    const tx = pipe(
+      createTransactionMessage({
         version: 0,
       }),
-      (txm) => kit.appendTransactionMessageInstructions([ix], txm),
-      (txm) => kit.setTransactionMessageFeePayerSigner(keypair, txm),
-      (txm) => kit.setTransactionMessageLifetimeUsingBlockhash(blockhash, txm)
+      (txm) => appendTransactionMessageInstructions([ix], txm),
+      (txm) => setTransactionMessageFeePayerSigner(keypair, txm),
+      (txm) => setTransactionMessageLifetimeUsingBlockhash(blockhash, txm)
     );
-    const signedTx = await kit.signTransactionMessageWithSigners(tx);
-    const sendAndConfirmTx = kit.sendAndConfirmTransactionFactory({
+    const signedTx = await signTransactionMessageWithSigners(tx);
+    const sendAndConfirmTx = sendAndConfirmTransactionFactory({
       rpc: rpcClient,
       rpcSubscriptions: rpcClientSubscriptions,
     });
@@ -116,19 +130,19 @@ describe("picosol-quote-sim-local", async () => {
     const managerFeeTokenBalanceAfter = BigInt(
       (
         await rpcClient
-          .getTokenAccountBalance(kit.address(stakePoolPre.managerFeeAccount))
+          .getTokenAccountBalance(address(stakePoolPre.managerFeeAccount))
           .send()
       ).value.amount
     );
 
     // Refetching stake pool to get updated state
     const latestStakePoolInfo = await rpcClient
-      .getAccountInfo(kit.address(accountJson.pubkey), {
+      .getAccountInfo(address(accountJson.pubkey), {
         encoding: "base64",
       })
       .send();
     const latestStakePoolData = new Uint8Array(
-      kit.getBase64Encoder().encode(latestStakePoolInfo.value!.data[0])
+      getBase64Encoder().encode(latestStakePoolInfo.value!.data[0])
     );
     const latestStakePoolHandle = deserStakePool(latestStakePoolData);
     const latestStakePool = getStakePool(latestStakePoolHandle);
@@ -160,20 +174,20 @@ describe("picosol-quote-sim-local", async () => {
     const referralToken = readTestFixturesAccPk("referral-picosol-token");
     const signerToken = readTestFixturesAccPk("signer-picosol-token");
 
-    let rpcClient = kit.createSolanaRpc("http://localhost:8899");
-    const rpcClientSubscriptions = kit.createSolanaRpcSubscriptions(
+    let rpcClient = createSolanaRpc("http://localhost:8899");
+    const rpcClientSubscriptions = createSolanaRpcSubscriptions(
       "ws://localhost:8900"
     );
 
     // Fetching the stake pool state for testing to enable multiple tests running on same validator
     const accountJson = readTestFixturesJsonFile("picosol-stake-pool");
     const stakePoolInfo = await rpcClient
-      .getAccountInfo(kit.address(accountJson.pubkey), {
+      .getAccountInfo(address(accountJson.pubkey), {
         encoding: "base64",
       })
       .send();
     const stakePoolData = new Uint8Array(
-      kit.getBase64Encoder().encode(stakePoolInfo.value!.data[0])
+      getBase64Encoder().encode(stakePoolInfo.value!.data[0])
     );
     const stakePoolHandle = deserStakePool(stakePoolData);
     const stakePool = getStakePool(stakePoolHandle);
@@ -193,7 +207,7 @@ describe("picosol-quote-sim-local", async () => {
     const managerFeeTokenBalanceBefore = BigInt(
       (
         await rpcClient
-          .getTokenAccountBalance(kit.address(stakePool.managerFeeAccount))
+          .getTokenAccountBalance(address(stakePool.managerFeeAccount))
           .send()
       ).value.amount
     );
@@ -208,21 +222,21 @@ describe("picosol-quote-sim-local", async () => {
         referralPoolTokens: referralToken,
       },
       stakePoolHandle
-    ) as unknown as kit.IInstruction;
+    ) as unknown as IInstruction;
 
     const { value: blockhash } = await rpcClient.getLatestBlockhash().send();
 
-    const tx = kit.pipe(
-      kit.createTransactionMessage({
+    const tx = pipe(
+      createTransactionMessage({
         version: 0,
       }),
-      (txm) => kit.appendTransactionMessageInstructions([ix], txm),
-      (txm) => kit.setTransactionMessageFeePayerSigner(keypair, txm),
-      (txm) => kit.setTransactionMessageLifetimeUsingBlockhash(blockhash, txm)
+      (txm) => appendTransactionMessageInstructions([ix], txm),
+      (txm) => setTransactionMessageFeePayerSigner(keypair, txm),
+      (txm) => setTransactionMessageLifetimeUsingBlockhash(blockhash, txm)
     );
 
-    const signedTx = await kit.signTransactionMessageWithSigners(tx);
-    const sendAndConfirmTx = kit.sendAndConfirmTransactionFactory({
+    const signedTx = await signTransactionMessageWithSigners(tx);
+    const sendAndConfirmTx = sendAndConfirmTransactionFactory({
       rpc: rpcClient,
       rpcSubscriptions: rpcClientSubscriptions,
     });
@@ -240,19 +254,19 @@ describe("picosol-quote-sim-local", async () => {
     const managerFeeTokenBalanceAfter = BigInt(
       (
         await rpcClient
-          .getTokenAccountBalance(kit.address(stakePool.managerFeeAccount))
+          .getTokenAccountBalance(address(stakePool.managerFeeAccount))
           .send()
       ).value.amount
     );
 
     // Refetching stake pool to get updated state
     const changedStakePool = await rpcClient
-      .getAccountInfo(kit.address(accountJson.pubkey), {
+      .getAccountInfo(address(accountJson.pubkey), {
         encoding: "base64",
       })
       .send();
     const newStakePoolData = new Uint8Array(
-      kit.getBase64Encoder().encode(changedStakePool.value!.data[0])
+      getBase64Encoder().encode(changedStakePool.value!.data[0])
     );
     const newStakePoolHandle = deserStakePool(newStakePoolData);
     const newStakePool = getStakePool(newStakePoolHandle);
@@ -285,8 +299,8 @@ describe("picosol-quote-sim-local", async () => {
 
     const signerToken = readTestFixturesAccPk("signer-picosol-token");
 
-    let rpcClient = kit.createSolanaRpc("http://localhost:8899");
-    const rpcClientSubscriptions = kit.createSolanaRpcSubscriptions(
+    let rpcClient = createSolanaRpc("http://localhost:8899");
+    const rpcClientSubscriptions = createSolanaRpcSubscriptions(
       "ws://localhost:8900"
     );
 
@@ -299,12 +313,12 @@ describe("picosol-quote-sim-local", async () => {
     // Fetching the stake pool state for testing to enable multiple tests running on same validator
     const accountJson = readTestFixturesJsonFile("picosol-stake-pool");
     const stakePoolInfo = await rpcClient
-      .getAccountInfo(kit.address(accountJson.pubkey), {
+      .getAccountInfo(address(accountJson.pubkey), {
         encoding: "base64",
       })
       .send();
     const stakePoolData = new Uint8Array(
-      kit.getBase64Encoder().encode(stakePoolInfo.value!.data[0])
+      getBase64Encoder().encode(stakePoolInfo.value!.data[0])
     );
     const stakePoolHandle = deserStakePool(stakePoolData);
     const stakePool = getStakePool(stakePoolHandle);
@@ -315,7 +329,7 @@ describe("picosol-quote-sim-local", async () => {
     const managerFeeTokenBalanceBefore = BigInt(
       (
         await rpcClient
-          .getTokenAccountBalance(kit.address(stakePool.managerFeeAccount))
+          .getTokenAccountBalance(address(stakePool.managerFeeAccount))
           .send()
       ).value.amount
     );
@@ -334,21 +348,21 @@ describe("picosol-quote-sim-local", async () => {
       {
         poolTokensIn: 1000000n,
       }
-    ) as unknown as kit.IInstruction;
+    ) as unknown as IInstruction;
 
     const { value: blockhash } = await rpcClient.getLatestBlockhash().send();
 
-    const tx = kit.pipe(
-      kit.createTransactionMessage({
+    const tx = pipe(
+      createTransactionMessage({
         version: 0,
       }),
-      (txm) => kit.appendTransactionMessageInstructions([ix], txm),
-      (txm) => kit.setTransactionMessageFeePayerSigner(keypair, txm),
-      (txm) => kit.setTransactionMessageLifetimeUsingBlockhash(blockhash, txm)
+      (txm) => appendTransactionMessageInstructions([ix], txm),
+      (txm) => setTransactionMessageFeePayerSigner(keypair, txm),
+      (txm) => setTransactionMessageLifetimeUsingBlockhash(blockhash, txm)
     );
 
-    const signedTx = await kit.signTransactionMessageWithSigners(tx);
-    const sendAndConfirmTx = kit.sendAndConfirmTransactionFactory({
+    const signedTx = await signTransactionMessageWithSigners(tx);
+    const sendAndConfirmTx = sendAndConfirmTransactionFactory({
       rpc: rpcClient,
       rpcSubscriptions: rpcClientSubscriptions,
     });
@@ -362,19 +376,19 @@ describe("picosol-quote-sim-local", async () => {
     const managerFeeTokenBalanceAfter = BigInt(
       (
         await rpcClient
-          .getTokenAccountBalance(kit.address(stakePool.managerFeeAccount))
+          .getTokenAccountBalance(address(stakePool.managerFeeAccount))
           .send()
       ).value.amount
     );
 
     // Refetching stake pool to get updated state
     const changedStakePool = await rpcClient
-      .getAccountInfo(kit.address(accountJson.pubkey), {
+      .getAccountInfo(address(accountJson.pubkey), {
         encoding: "base64",
       })
       .send();
     const newStakePoolData = new Uint8Array(
-      kit.getBase64Encoder().encode(changedStakePool.value!.data[0])
+      getBase64Encoder().encode(changedStakePool.value!.data[0])
     );
     const newStakePoolHandle = deserStakePool(newStakePoolData);
     const newStakePool = getStakePool(newStakePoolHandle);
@@ -412,20 +426,20 @@ describe("picosol-quote-sim-local", async () => {
 
     const signerToken = readTestFixturesAccPk("signer-picosol-token");
 
-    let rpcClient = kit.createSolanaRpc("http://localhost:8899");
-    const rpcClientSubscriptions = kit.createSolanaRpcSubscriptions(
+    let rpcClient = createSolanaRpc("http://localhost:8899");
+    const rpcClientSubscriptions = createSolanaRpcSubscriptions(
       "ws://localhost:8900"
     );
 
     // Fetching the stake pool state for testing to enable multiple tests running on same validator
     const accountJson = readTestFixturesJsonFile("picosol-stake-pool");
     const stakePoolInfo = await rpcClient
-      .getAccountInfo(kit.address(accountJson.pubkey), {
+      .getAccountInfo(address(accountJson.pubkey), {
         encoding: "base64",
       })
       .send();
     const stakePoolData = new Uint8Array(
-      kit.getBase64Encoder().encode(stakePoolInfo.value!.data[0])
+      getBase64Encoder().encode(stakePoolInfo.value!.data[0])
     );
     const stakePoolHandle = deserStakePool(stakePoolData);
     const stakePool = getStakePool(stakePoolHandle);
@@ -436,7 +450,7 @@ describe("picosol-quote-sim-local", async () => {
     const managerFeeTokenBalanceBefore = BigInt(
       (
         await rpcClient
-          .getTokenAccountBalance(kit.address(stakePool.managerFeeAccount))
+          .getTokenAccountBalance(address(stakePool.managerFeeAccount))
           .send()
       ).value.amount
     );
@@ -458,21 +472,21 @@ describe("picosol-quote-sim-local", async () => {
       {
         poolTokensIn: 10000000n,
       }
-    ) as unknown as kit.IInstruction;
+    ) as unknown as IInstruction;
 
     const { value: blockhash } = await rpcClient.getLatestBlockhash().send();
 
-    const tx = kit.pipe(
-      kit.createTransactionMessage({
+    const tx = pipe(
+      createTransactionMessage({
         version: 0,
       }),
-      (txm) => kit.appendTransactionMessageInstructions([ix], txm),
-      (txm) => kit.setTransactionMessageFeePayerSigner(keypair, txm),
-      (txm) => kit.setTransactionMessageLifetimeUsingBlockhash(blockhash, txm)
+      (txm) => appendTransactionMessageInstructions([ix], txm),
+      (txm) => setTransactionMessageFeePayerSigner(keypair, txm),
+      (txm) => setTransactionMessageLifetimeUsingBlockhash(blockhash, txm)
     );
 
-    const signedTx = await kit.signTransactionMessageWithSigners(tx);
-    const sendAndConfirmTx = kit.sendAndConfirmTransactionFactory({
+    const signedTx = await signTransactionMessageWithSigners(tx);
+    const sendAndConfirmTx = sendAndConfirmTransactionFactory({
       rpc: rpcClient,
       rpcSubscriptions: rpcClientSubscriptions,
     });
@@ -486,20 +500,20 @@ describe("picosol-quote-sim-local", async () => {
       })
       .send();
 
-    let encoded = kit
-      .getBase64Encoder()
-      .encode(stakeAccountInfoAfter.value!.data[0]);
+    let encoded = getBase64Encoder().encode(
+      stakeAccountInfoAfter.value!.data[0]
+    );
 
-    let delegationStake = kit.getU64Codec().decode(encoded.slice(156, 164));
+    let delegationStake = getU64Codec().decode(encoded.slice(156, 164));
 
     // Refetching stake pool to get updated state
     const changedStakePool = await rpcClient
-      .getAccountInfo(kit.address(accountJson.pubkey), {
+      .getAccountInfo(address(accountJson.pubkey), {
         encoding: "base64",
       })
       .send();
     const newStakePoolData = new Uint8Array(
-      kit.getBase64Encoder().encode(changedStakePool.value!.data[0])
+      getBase64Encoder().encode(changedStakePool.value!.data[0])
     );
     const newStakePoolHandle = deserStakePool(newStakePoolData);
     const newStakePool = getStakePool(newStakePoolHandle);
@@ -510,7 +524,7 @@ describe("picosol-quote-sim-local", async () => {
     const managerFeeTokenBalanceAfter = BigInt(
       (
         await rpcClient
-          .getTokenAccountBalance(kit.address(stakePool.managerFeeAccount))
+          .getTokenAccountBalance(address(stakePool.managerFeeAccount))
           .send()
       ).value.amount
     );

@@ -1,4 +1,9 @@
-import { createKeyPairSignerFromBytes, type KeyPairSigner } from "@solana/kit";
+import {
+  address,
+  createKeyPairSignerFromBytes,
+  type Address,
+  type KeyPairSigner,
+} from "@solana/kit";
 import { readFileSync } from "fs";
 
 export function readTestFixturesJsonFile(fname: string): any {
@@ -8,6 +13,11 @@ export function readTestFixturesJsonFile(fname: string): any {
       "utf8"
     )
   );
+}
+
+export function readTestFixturesAccPk(fname: string): Address<string> {
+  const { pubkey } = readTestFixturesJsonFile(fname);
+  return address(pubkey);
 }
 
 export function readTestFixturesKeypair(

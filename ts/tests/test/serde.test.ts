@@ -11,7 +11,7 @@ import {
 
 describe("serde", () => {
   it("de-stakepool-fixture-mut-then-ser", () => {
-    const accountJson = readTestFixturesJsonFile("jupSolStakePool");
+    const accountJson = readTestFixturesJsonFile("jupsol-stake-pool");
     const accountData = Buffer.from(accountJson.account.data[0], "base64");
     const bytes = new Uint8Array(accountData);
 
@@ -35,7 +35,7 @@ describe("serde", () => {
   });
 
   it("de-validatorlist-fixture-mut-then-ser", () => {
-    const validatorListJson = readTestFixturesJsonFile("validatorList");
+    const validatorListJson = readTestFixturesJsonFile("validator-list");
     const validatorListData = Buffer.from(
       validatorListJson.account.data[0],
       "base64"

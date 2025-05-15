@@ -1,23 +1,30 @@
 import { describe, it, assert } from "vitest";
-import { readTestFixturesKeypair } from "./utils";
+import { readTestFixturesAccPk, readTestFixturesKeypair } from "./utils";
 import * as kit from "@solana/kit";
 import { initializeIx } from "@sanctumso/spl-stake-pool";
 
 describe("initialize", async () => {
-  // Requires a local validator running with test fixtures
+  // Requires a local validator running with test fixtures.
+  // This requires the backpackSOL fixtures to be present and it initializes the pool
+  // with the following accounts already existing onchain:
+  // - uninitialized stake-pool
+  // - uninitialized validator-list
+  // - initialized mint
+  // - initialized reserve stake
+  // - initialized manager fee destination
   it("initialize-sim-local", async () => {
     const keypair = await readTestFixturesKeypair("signer");
 
     let ix = initializeIx(
       {
         program: "SP12tWFxD9oJsVWNavTTBZvMbA6gkAmxtVgxdqvyvhY",
-        stakePool: "ETVc1GBAiKzv2gNaA3Hfq4hsS1Mzh1NwQSxRFst7k8vz",
+        stakePool: readTestFixturesAccPk("bpsol-stake-pool"),
         manager: keypair.address,
-        managerFee: "oGNCWtCuDs48gDjGCFwDkoFH1ZWLwehaYYcAoe6fCLD",
+        managerFee: readTestFixturesAccPk("bpsol-manager-fee"),
         staker: keypair.address,
-        validatorList: "A2fm8gqbBHDcirKM2Ciqo7h9dg9FJeJZqpLGGJdDhBJq",
-        reserve: "C6nDiFyQH8vbVyfGhgpCfzWbHixf5Kq3MUN5vFCdJ4qP",
-        poolMint: "BPSoLzmLQn47EP5aa7jmFngRL8KC3TWAeAwXwZD8ip3P",
+        validatorList: readTestFixturesAccPk("bpsol-validator-list"),
+        reserve: readTestFixturesAccPk("bpsol-reserve"),
+        poolMint: readTestFixturesAccPk("bpsol-mint"),
         poolTokenProgram: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
       },
       {

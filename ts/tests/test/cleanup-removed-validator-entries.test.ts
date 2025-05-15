@@ -1,5 +1,5 @@
 import { describe, it, assert } from "vitest";
-import { readTestFixturesJsonFile } from "./utils";
+import { readTestFixturesAccPk, readTestFixturesJsonFile } from "./utils";
 import * as kit from "@solana/kit";
 import {
   cleanupRemovedValidatorEntriesIxFromStakePool,
@@ -9,7 +9,7 @@ import {
 
 describe("cleanup-removed-validator-entries", async () => {
   it("cleanup-removed-validator-entries-sim-mainnet", async () => {
-    const accountJson = readTestFixturesJsonFile("jupSolStakePool");
+    const accountJson = readTestFixturesJsonFile("jupsol-stake-pool");
     const accountData = Buffer.from(accountJson.account.data[0], "base64");
     const bytes = new Uint8Array(accountData);
     const stakePoolHandle = deserStakePool(bytes);
@@ -18,7 +18,7 @@ describe("cleanup-removed-validator-entries", async () => {
     const ix = cleanupRemovedValidatorEntriesIxFromStakePool(
       {
         program: "SPMBzsVUuoHA4Jm6KunbsotaahvVikZs1JyTW6iJvbn",
-        stakePool: "8VpRhuxa7sUUepdY3kQiTmX9rS5vx4WgaXiAnXq4KCtr",
+        stakePool: readTestFixturesAccPk("jupsol-stake-pool"),
       },
       stakePoolHandle
     ) as unknown as kit.IInstruction;

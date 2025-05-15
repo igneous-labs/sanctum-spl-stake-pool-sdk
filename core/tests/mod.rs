@@ -4,8 +4,8 @@ mod tests {
     use data_encoding::BASE64;
     use sanctum_spl_stake_pool_core::{self as stake_pool_sdk};
 
-    const STAKE_POOL_DATA: &[u8] = include_bytes!("../../test-fixtures/jupSolStakePool.json");
-    const VALIDATOR_LIST_DATA: &[u8] = include_bytes!("../../test-fixtures/validatorList.json");
+    const STAKE_POOL_DATA: &[u8] = include_bytes!("../../test-fixtures/jupsol-stake-pool.json");
+    const VALIDATOR_LIST_DATA: &[u8] = include_bytes!("../../test-fixtures/validator-list.json");
 
     #[test]
     fn test_stake_pool_serde() {

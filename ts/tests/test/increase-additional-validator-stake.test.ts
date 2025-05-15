@@ -9,7 +9,7 @@ import {
 
 describe("increase-additional-validator-stake", async () => {
   it("increase-additional-validator-stake-sim-mainnet", async () => {
-    const accountJson = readTestFixturesJsonFile("jupSolStakePool");
+    const accountJson = readTestFixturesJsonFile("jupsol-stake-pool");
     const accountData = Buffer.from(accountJson.account.data[0], "base64");
     const bytes = new Uint8Array(accountData);
     const stakePoolHandle = deserStakePool(bytes);

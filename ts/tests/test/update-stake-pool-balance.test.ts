@@ -1,5 +1,5 @@
 import { describe, it, assert } from "vitest";
-import { readTestFixturesJsonFile } from "./utils";
+import { readTestFixturesAccPk, readTestFixturesJsonFile } from "./utils";
 import {
   deserStakePool,
   getStakePool,
@@ -9,7 +9,7 @@ import * as kit from "@solana/kit";
 
 describe("update-stake-pool-balance", async () => {
   it("update-stake-pool-balance-sim-mainnet", async () => {
-    const accountJson = readTestFixturesJsonFile("jupSolStakePool");
+    const accountJson = readTestFixturesJsonFile("jupsol-stake-pool");
     const accountData = Buffer.from(accountJson.account.data[0], "base64");
     const bytes = new Uint8Array(accountData);
     const stakePoolHandle = deserStakePool(bytes);
@@ -18,7 +18,7 @@ describe("update-stake-pool-balance", async () => {
     let ix = updateStakePoolBalanceIxFromStakePool(
       {
         program: "SPMBzsVUuoHA4Jm6KunbsotaahvVikZs1JyTW6iJvbn",
-        stakePool: "8VpRhuxa7sUUepdY3kQiTmX9rS5vx4WgaXiAnXq4KCtr",
+        stakePool: readTestFixturesAccPk("jupsol-stake-pool"),
       },
       stakePoolHandle
     ) as unknown as kit.IInstruction;

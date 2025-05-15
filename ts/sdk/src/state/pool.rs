@@ -6,11 +6,7 @@ use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
 use wasm_bindgen::prelude::*;
 
-use crate::{
-    conv::{pubkey_from_js, pubkey_to_js},
-    err::arithmetic_overflow_err,
-    Lockup,
-};
+use crate::{err::arithmetic_overflow_err, Lockup, B58PK};
 
 #[wasm_bindgen]
 pub struct StakePoolHandle(pub(crate) sanctum_spl_stake_pool_core::StakePool);
@@ -100,11 +96,11 @@ pub struct StakePool {
 
     /// Manager authority, allows for updating the staker, manager, and fee
     /// account
-    pub manager: Box<str>,
+    pub manager: B58PK,
 
     /// Staker authority, allows for adding and removing validators, and
     /// managing stake distribution
-    pub staker: Box<str>,
+    pub staker: B58PK,
 
     /// Stake deposit authority
     ///
@@ -115,26 +111,26 @@ pub struct StakePool {
     ///     &[&stake_pool_address.as_ref(), b"deposit"],
     ///     program_id,
     /// )`
-    pub stake_deposit_authority: Box<str>,
+    pub stake_deposit_authority: B58PK,
 
     /// Stake withdrawal authority bump seed
     /// for `create_program_address(&[state::StakePool account, "withdrawal"])`
     pub stake_withdraw_bump_seed: u8,
 
     /// Validator stake list storage account
-    pub validator_list: Box<str>,
+    pub validator_list: B58PK,
 
     /// Reserve stake account, holds deactivated stake
-    pub reserve_stake: Box<str>,
+    pub reserve_stake: B58PK,
 
     /// Pool Mint
-    pub pool_mint: Box<str>,
+    pub pool_mint: B58PK,
 
     /// Manager fee account
-    pub manager_fee_account: Box<str>,
+    pub manager_fee_account: B58PK,
 
     /// Pool token program id
-    pub token_program_id: Box<str>,
+    pub token_program_id: B58PK,
 
     /// Total stake under management.
     /// Note that if `last_update_epoch` does not match the current epoch then
@@ -159,11 +155,11 @@ pub struct StakePool {
 
     /// Preferred deposit validator vote account pubkey
     #[tsify(optional)]
-    pub preferred_deposit_validator_vote_address: Option<Box<str>>,
+    pub preferred_deposit_validator_vote_address: Option<B58PK>,
 
     /// Preferred withdraw validator vote account pubkey
     #[tsify(optional)]
-    pub preferred_withdraw_validator_vote_address: Option<Box<str>>,
+    pub preferred_withdraw_validator_vote_address: Option<B58PK>,
 
     /// Fee assessed on stake deposits
     pub stake_deposit_fee: Fee,
@@ -184,7 +180,7 @@ pub struct StakePool {
     /// Toggles whether the `DepositSol` instruction requires a signature from
     /// this `sol_deposit_authority`
     #[tsify(optional)]
-    pub sol_deposit_authority: Option<Box<str>>,
+    pub sol_deposit_authority: Option<B58PK>,
 
     /// Fee assessed on SOL deposits
     pub sol_deposit_fee: Fee,
@@ -199,7 +195,7 @@ pub struct StakePool {
     /// Toggles whether the `WithdrawSol` instruction requires a signature from
     /// the `deposit_authority`
     #[tsify(optional)]
-    pub sol_withdraw_authority: Option<Box<str>>,
+    pub sol_withdraw_authority: Option<B58PK>,
 
     /// Fee assessed on SOL withdrawals
     pub sol_withdrawal_fee: Fee,
@@ -250,15 +246,15 @@ impl StakePool {
         } = self;
         Ok(sanctum_spl_stake_pool_core::StakePool {
             account_type: *account_type,
-            manager: pubkey_from_js(manager)?,
-            staker: pubkey_from_js(staker)?,
-            stake_deposit_authority: pubkey_from_js(stake_deposit_authority)?,
+            manager: manager.0,
+            staker: staker.0,
+            stake_deposit_authority: stake_deposit_authority.0,
             stake_withdraw_bump_seed: *stake_withdraw_bump_seed,
-            validator_list: pubkey_from_js(validator_list)?,
-            reserve_stake: pubkey_from_js(reserve_stake)?,
-            pool_mint: pubkey_from_js(pool_mint)?,
-            manager_fee_account: pubkey_from_js(manager_fee_account)?,
-            token_program_id: pubkey_from_js(token_program_id)?,
+            validator_list: validator_list.0,
+            reserve_stake: reserve_stake.0,
+            pool_mint: pool_mint.0,
+            manager_fee_account: manager_fee_account.0,
+            token_program_id: token_program_id.0,
             total_lamports: *total_lamports,
             pool_token_supply: *pool_token_supply,
             last_update_epoch: *last_update_epoch,
@@ -266,27 +262,17 @@ impl StakePool {
             epoch_fee: *epoch_fee,
             next_epoch_fee: *next_epoch_fee,
             preferred_deposit_validator_vote_address: preferred_deposit_validator_vote_address
-                .as_ref()
-                .map(|b| pubkey_from_js(b))
-                .transpose()?,
+                .map(|b| b.0),
             preferred_withdraw_validator_vote_address: preferred_withdraw_validator_vote_address
-                .as_ref()
-                .map(|b| pubkey_from_js(b))
-                .transpose()?,
+                .map(|b| b.0),
             stake_deposit_fee: *stake_deposit_fee,
             stake_withdrawal_fee: *stake_withdrawal_fee,
             next_stake_withdrawal_fee: *next_stake_withdrawal_fee,
             stake_referral_fee: *stake_referral_fee,
-            sol_deposit_authority: sol_deposit_authority
-                .as_ref()
-                .map(|b| pubkey_from_js(b))
-                .transpose()?,
+            sol_deposit_authority: sol_deposit_authority.map(|b| b.0),
             sol_deposit_fee: *sol_deposit_fee,
             sol_referral_fee: *sol_referral_fee,
-            sol_withdraw_authority: sol_withdraw_authority
-                .as_ref()
-                .map(|b| pubkey_from_js(b))
-                .transpose()?,
+            sol_withdraw_authority: sol_withdraw_authority.map(|b| b.0),
             sol_withdrawal_fee: *sol_withdrawal_fee,
             next_sol_withdrawal_fee: *next_sol_withdrawal_fee,
             last_epoch_pool_token_supply: *last_epoch_pool_token_supply,
@@ -330,15 +316,15 @@ impl StakePool {
     ) -> Self {
         Self {
             account_type: *account_type,
-            manager: pubkey_to_js(manager),
-            staker: pubkey_to_js(staker),
-            stake_deposit_authority: pubkey_to_js(stake_deposit_authority),
+            manager: B58PK::new(*manager),
+            staker: B58PK::new(*staker),
+            stake_deposit_authority: B58PK::new(*stake_deposit_authority),
             stake_withdraw_bump_seed: *stake_withdraw_bump_seed,
-            validator_list: pubkey_to_js(validator_list),
-            reserve_stake: pubkey_to_js(reserve_stake),
-            pool_mint: pubkey_to_js(pool_mint),
-            manager_fee_account: pubkey_to_js(manager_fee_account),
-            token_program_id: pubkey_to_js(token_program_id),
+            validator_list: B58PK::new(*validator_list),
+            reserve_stake: B58PK::new(*reserve_stake),
+            pool_mint: B58PK::new(*pool_mint),
+            manager_fee_account: B58PK::new(*manager_fee_account),
+            token_program_id: B58PK::new(*token_program_id),
             total_lamports: *total_lamports,
             pool_token_supply: *pool_token_supply,
             last_update_epoch: *last_update_epoch,
@@ -346,19 +332,17 @@ impl StakePool {
             epoch_fee: *epoch_fee,
             next_epoch_fee: *next_epoch_fee,
             preferred_deposit_validator_vote_address: preferred_deposit_validator_vote_address
-                .as_ref()
-                .map(pubkey_to_js),
+                .map(B58PK::new),
             preferred_withdraw_validator_vote_address: preferred_withdraw_validator_vote_address
-                .as_ref()
-                .map(pubkey_to_js),
+                .map(B58PK::new),
             stake_deposit_fee: *stake_deposit_fee,
             stake_withdrawal_fee: *stake_withdrawal_fee,
             next_stake_withdrawal_fee: *next_stake_withdrawal_fee,
             stake_referral_fee: *stake_referral_fee,
-            sol_deposit_authority: sol_deposit_authority.as_ref().map(pubkey_to_js),
+            sol_deposit_authority: sol_deposit_authority.map(B58PK::new),
             sol_deposit_fee: *sol_deposit_fee,
             sol_referral_fee: *sol_referral_fee,
-            sol_withdraw_authority: sol_withdraw_authority.as_ref().map(pubkey_to_js),
+            sol_withdraw_authority: sol_withdraw_authority.map(B58PK::new),
             sol_withdrawal_fee: *sol_withdrawal_fee,
             next_sol_withdrawal_fee: *next_sol_withdrawal_fee,
             last_epoch_pool_token_supply: *last_epoch_pool_token_supply,

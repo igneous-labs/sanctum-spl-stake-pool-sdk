@@ -8,11 +8,10 @@ use tsify_next::Tsify;
 use wasm_bindgen::{prelude::wasm_bindgen, JsError};
 
 use crate::{
-    conv::pubkey_from_js,
     err::no_valid_pda,
     find_validator_stake_account_pda_internal, find_withdraw_auth_pda_internal,
     utils::{keys_signer_writer_to_account_metas, AccountMeta},
-    StakePoolHandle,
+    StakePoolHandle, B58PK,
 };
 
 use super::Instruction;
@@ -25,12 +24,12 @@ pub struct DepositStakeIxKeysHandle(stake_pool_sdk::DepositStakeIxKeysOwned);
 #[tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)]
 #[serde(rename_all = "camelCase")]
 pub struct DepositStakeIxUserAddrs {
-    pub program: Box<str>,
-    pub stake_pool: Box<str>,
-    pub deposit_stake: Box<str>,
-    pub validator_vote: Box<str>,
-    pub pool_tokens_to: Box<str>,
-    pub referral_pool_tokens: Box<str>,
+    pub program: B58PK,
+    pub stake_pool: B58PK,
+    pub deposit_stake: B58PK,
+    pub validator_vote: B58PK,
+    pub pool_tokens_to: B58PK,
+    pub referral_pool_tokens: B58PK,
 }
 
 /// @throws if
@@ -50,19 +49,13 @@ pub fn deposit_stake_ix_from_stake_pool(
     stake_pool_handle: &StakePoolHandle,
     validator_stake_seed: Option<u32>,
 ) -> Result<Instruction, JsError> {
-    let program_addr = pubkey_from_js(&program)?;
-    let stake_pool_addr = pubkey_from_js(&stake_pool)?;
-    let deposit_stake_addr = pubkey_from_js(&deposit_stake)?;
-    let validator_vote_addr = pubkey_from_js(&validator_vote)?;
-    let pool_tokens_to_addr = pubkey_from_js(&pool_tokens_to)?;
-    let referral_pool_tokens_addr = pubkey_from_js(&referral_pool_tokens)?;
-    let withdraw_auth = find_withdraw_auth_pda_internal(&program_addr, &stake_pool_addr)
+    let withdraw_auth = find_withdraw_auth_pda_internal(&program.0, &stake_pool.0)
         .ok_or_else(no_valid_pda)?
         .0;
     let validator_stake = find_validator_stake_account_pda_internal(
-        &program_addr,
-        &validator_vote_addr,
-        &stake_pool_addr,
+        &program.0,
+        &validator_vote.0,
+        &stake_pool.0,
         validator_stake_seed.and_then(NonZeroU32::new),
     )
     .ok_or_else(no_valid_pda)?
@@ -71,13 +64,13 @@ pub fn deposit_stake_ix_from_stake_pool(
     let accounts = stake_pool_sdk::DepositStakeIxKeysOwned::default()
         .with_keys_from_stake_pool(&stake_pool_handle.0)
         .with_consts()
-        .with_stake_pool(stake_pool_addr)
+        .with_stake_pool(stake_pool.0)
         .with_deposit_auth(stake_pool_handle.0.stake_deposit_authority)
         .with_withdraw_auth(withdraw_auth)
-        .with_deposit_stake(deposit_stake_addr)
+        .with_deposit_stake(deposit_stake.0)
         .with_validator_stake(validator_stake)
-        .with_pool_tokens_to(pool_tokens_to_addr)
-        .with_referral_pool_tokens(referral_pool_tokens_addr);
+        .with_pool_tokens_to(pool_tokens_to.0)
+        .with_referral_pool_tokens(referral_pool_tokens.0);
 
     Ok(Instruction {
         data: Box::new(stake_pool_sdk::DepositStakeIxData::new().to_buf()),

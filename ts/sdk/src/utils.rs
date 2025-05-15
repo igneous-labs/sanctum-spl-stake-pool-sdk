@@ -1,8 +1,10 @@
+use bs58_fixed_wasm::Bs58Array;
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
 
-use crate::conv::pubkey_to_js;
+#[tsify_next::declare]
+pub type B58PK = Bs58Array<32, 44>;
 
 #[allow(unused)]
 pub fn set_panic_hook() {
@@ -19,7 +21,7 @@ pub fn set_panic_hook() {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct AccountMeta {
-    pub address: Box<str>,
+    pub address: B58PK,
 
     /// Represents the role of an account in a transaction:
     /// - Readonly: 0
@@ -31,9 +33,9 @@ pub struct AccountMeta {
 }
 
 impl AccountMeta {
-    pub(crate) const fn new(address: Box<str>, role: Role) -> Self {
+    pub(crate) const fn new(address: [u8; 32], role: Role) -> Self {
         Self {
-            address,
+            address: B58PK::new(address),
             role: role.as_u8(),
         }
     }
@@ -46,10 +48,7 @@ pub fn keys_signer_writer_to_account_metas<const N: usize>(
 ) -> [AccountMeta; N] {
     core::array::from_fn(|i| {
         let k = keys[i];
-        AccountMeta::new(
-            pubkey_to_js(k),
-            Role::from_signer_writable(signer[i], writer[i]),
-        )
+        AccountMeta::new(*k, Role::from_signer_writable(signer[i], writer[i]))
     })
 }
 

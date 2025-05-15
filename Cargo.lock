@@ -68,6 +68,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf88ba1141d185c399bee5288d850d63b8369520c1eafc32a0430b5b6c287bf4"
 
 [[package]]
+name = "bs58-fixed"
+version = "0.1.0"
+source = "git+https://github.com/igneous-labs/bs58-fixed.git?branch=master#1c9401ae155487a0980d6553dd35c64447d9486b"
+dependencies = [
+ "bs58",
+]
+
+[[package]]
+name = "bs58-fixed-wasm"
+version = "0.1.0"
+source = "git+https://github.com/igneous-labs/bs58-fixed.git?branch=master#1c9401ae155487a0980d6553dd35c64447d9486b"
+dependencies = [
+ "bs58-fixed",
+ "serde",
+ "tsify-next",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -810,6 +829,7 @@ version = "0.0.1-dev-3"
 dependencies = [
  "borsh",
  "bs58",
+ "bs58-fixed-wasm",
  "console_error_panic_hook",
  "ed25519-compact",
  "hmac-sha256",

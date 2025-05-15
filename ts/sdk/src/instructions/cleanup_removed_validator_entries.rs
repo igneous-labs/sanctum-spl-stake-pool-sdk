@@ -1,5 +1,4 @@
 use crate::{
-    conv::pubkey_from_js,
     utils::{keys_signer_writer_to_account_metas, AccountMeta},
     StakePoolHandle,
 };
@@ -33,7 +32,7 @@ pub fn cleanup_removed_validator_entries_ix_from_stake_pool(
 ) -> Result<Instruction, JsError> {
     let accounts = stake_pool_sdk::CleanupRemovedValidatorEntriesIxKeysOwned::default()
         .with_keys_from_stake_pool(&stake_pool_handle.0)
-        .with_stake_pool(pubkey_from_js(&stake_pool)?);
+        .with_stake_pool(stake_pool.0);
 
     Ok(Instruction {
         data: Box::new(stake_pool_sdk::CleanupRemovedValidatorEntriesIxData::new().to_buf()),

@@ -5,11 +5,10 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsError};
 use sanctum_spl_stake_pool_core as stake_pool_sdk;
 
 use crate::{
-    conv::{pubkey_from_js, pubkey_to_js},
     err::no_valid_pda,
     find_withdraw_auth_pda_internal,
     utils::{keys_signer_writer_to_account_metas, AccountMeta, Role},
-    StakePoolHandle,
+    StakePoolHandle, B58PK,
 };
 
 use super::Instruction;
@@ -29,11 +28,11 @@ pub struct DepositSolIxPrefixKeysHandle(stake_pool_sdk::DepositSolIxPrefixKeysOw
 #[tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)]
 #[serde(rename_all = "camelCase")]
 pub struct DepositSolIxUserAddrs {
-    pub program: Box<str>,
-    pub stake_pool: Box<str>,
-    pub referrer_fee: Box<str>,
-    pub from_user_lamports: Box<str>,
-    pub dest_user_pool: Box<str>,
+    pub program: B58PK,
+    pub stake_pool: B58PK,
+    pub referrer_fee: B58PK,
+    pub from_user_lamports: B58PK,
+    pub dest_user_pool: B58PK,
 }
 
 /// @throws if
@@ -52,23 +51,18 @@ pub fn deposit_sol_ix_from_stake_pool(
     stake_pool_handle: &StakePoolHandle,
     args: DepositSolIxArgs,
 ) -> Result<Instruction, JsError> {
-    let program_addr = pubkey_from_js(&program)?;
-    let stake_pool_addr = pubkey_from_js(&stake_pool)?;
-    let referrer_fee_addr = pubkey_from_js(&referrer_fee)?;
-    let from_user_lamports_addr = pubkey_from_js(&from_user_lamports)?;
-    let dest_user_pool_addr = pubkey_from_js(&dest_user_pool)?;
-    let withdraw_authority = find_withdraw_auth_pda_internal(&program_addr, &stake_pool_addr)
+    let withdraw_authority = find_withdraw_auth_pda_internal(&program.0, &stake_pool.0)
         .ok_or_else(no_valid_pda)?
         .0;
 
     let accounts = DepositSolIxPrefixKeysHandle(
         stake_pool_sdk::DepositSolIxPrefixKeysOwned::default()
             .with_keys_from_stake_pool(&stake_pool_handle.0)
-            .with_stake_pool(stake_pool_addr)
+            .with_stake_pool(stake_pool.0)
             .with_withdraw_auth(withdraw_authority)
-            .with_referrer_fee(referrer_fee_addr)
-            .with_from_user_lamports(from_user_lamports_addr)
-            .with_dest_user_pool(dest_user_pool_addr)
+            .with_referrer_fee(referrer_fee.0)
+            .with_from_user_lamports(from_user_lamports.0)
+            .with_dest_user_pool(dest_user_pool.0)
             .with_consts(),
     )
     .to_account_metas();
@@ -84,7 +78,7 @@ pub fn deposit_sol_ix_from_stake_pool(
                     .0
                     .sol_deposit_authority
                     .into_iter()
-                    .map(|auth| AccountMeta::new(pubkey_to_js(&auth), Role::ReadonlySigner)),
+                    .map(|auth| AccountMeta::new(auth, Role::ReadonlySigner)),
             )
             .collect(),
         program_address: program,

@@ -11,11 +11,12 @@ default = []
 
 [dependencies]
 borsh = { workspace = true }
+bs58-fixed-wasm = { workspace = true, features = ["js"]}
 ed25519-compact = { workspace = true }
 hmac-sha256 = { workspace = true }
 wasm-bindgen = { workspace = true }
 sanctum-spl-stake-pool-core = { workspace = true , features = ["wasm"] }
-tsify-next = { workspace = true }
+tsify-next = { workspace = true, features = ["js"]}
 serde = { workspace = true }
 serde_bytes = { workspace = true, features = ["std"] }
 bs58 = { workspace = true }

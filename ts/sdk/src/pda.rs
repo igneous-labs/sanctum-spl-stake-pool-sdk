@@ -9,28 +9,22 @@ use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
 use wasm_bindgen::prelude::*;
 
-use crate::{
-    conv::{pubkey_from_js, pubkey_to_js},
-    err::no_valid_pda,
-};
+use crate::{err::no_valid_pda, B58PK};
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)]
-pub struct FoundPda(pub Box<str>, pub u8);
+pub struct FoundPda(pub B58PK, pub u8);
 
 /// @throws
 /// - if pubkey params are not valid pubkey strings
 /// - if no valid PDA was found
 #[wasm_bindgen(js_name = findWithdrawAuthPda)]
 pub fn find_withdraw_auth_pda(
-    program_id: &str,
-    stake_pool_addr: &str,
+    program_id: B58PK,
+    stake_pool_addr: B58PK,
 ) -> Result<FoundPda, JsError> {
-    let program_id = pubkey_from_js(program_id)?;
-    let stake_pool_addr = pubkey_from_js(stake_pool_addr)?;
-
-    find_withdraw_auth_pda_internal(&program_id, &stake_pool_addr)
-        .map(|(pk, bump)| FoundPda(pubkey_to_js(&pk), bump))
+    find_withdraw_auth_pda_internal(&program_id.0, &stake_pool_addr.0)
+        .map(|(pk, bump)| FoundPda(B58PK::new(pk), bump))
         .ok_or_else(no_valid_pda)
 }
 
@@ -38,12 +32,12 @@ pub fn find_withdraw_auth_pda(
 /// - if pubkey params are not valid pubkey strings
 /// - if no valid PDA was found
 #[wasm_bindgen(js_name = findDepositAuthPda)]
-pub fn find_deposit_auth_pda(program_id: &str, stake_pool_addr: &str) -> Result<FoundPda, JsError> {
-    let program_id = pubkey_from_js(program_id)?;
-    let stake_pool_addr = pubkey_from_js(stake_pool_addr)?;
-
-    find_deposit_auth_pda_internal(&program_id, &stake_pool_addr)
-        .map(|(pk, bump)| FoundPda(pubkey_to_js(&pk), bump))
+pub fn find_deposit_auth_pda(
+    program_id: B58PK,
+    stake_pool_addr: B58PK,
+) -> Result<FoundPda, JsError> {
+    find_deposit_auth_pda_internal(&program_id.0, &stake_pool_addr.0)
+        .map(|(pk, bump)| FoundPda(B58PK::new(pk), bump))
         .ok_or_else(no_valid_pda)
 }
 
@@ -52,23 +46,20 @@ pub fn find_deposit_auth_pda(program_id: &str, stake_pool_addr: &str) -> Result<
 /// - if no valid PDA was found
 #[wasm_bindgen(js_name = findValidatorStakeAccountPda)]
 pub fn find_validator_stake_account_pda(
-    program_id: &str,
-    vote_account_addr: &str,
-    stake_pool_addr: &str,
+    program_id: B58PK,
+    vote_account_addr: B58PK,
+    stake_pool_addr: B58PK,
     seed: Option<u32>,
 ) -> Result<FoundPda, JsError> {
-    let program_id = pubkey_from_js(program_id)?;
-    let stake_pool_addr = pubkey_from_js(stake_pool_addr)?;
-    let vote_account_addr = pubkey_from_js(vote_account_addr)?;
     let seed = seed.and_then(NonZeroU32::new);
 
     find_validator_stake_account_pda_internal(
-        &program_id,
-        &vote_account_addr,
-        &stake_pool_addr,
+        &program_id.0,
+        &vote_account_addr.0,
+        &stake_pool_addr.0,
         seed,
     )
-    .map(|(pk, bump)| FoundPda(pubkey_to_js(&pk), bump))
+    .map(|(pk, bump)| FoundPda(B58PK::new(pk), bump))
     .ok_or_else(no_valid_pda)
 }
 
@@ -77,22 +68,18 @@ pub fn find_validator_stake_account_pda(
 /// - if no valid PDA was found
 #[wasm_bindgen(js_name = findTransientStakeAccountPda)]
 pub fn find_transient_stake_account_pda(
-    program_id: &str,
-    vote_account_addr: &str,
-    stake_pool_addr: &str,
+    program_id: B58PK,
+    vote_account_addr: B58PK,
+    stake_pool_addr: B58PK,
     seed: u64,
 ) -> Result<FoundPda, JsError> {
-    let program_id = pubkey_from_js(program_id)?;
-    let stake_pool_addr = pubkey_from_js(stake_pool_addr)?;
-    let vote_account_addr = pubkey_from_js(vote_account_addr)?;
-
     find_transient_stake_account_pda_internal(
-        &program_id,
-        &vote_account_addr,
-        &stake_pool_addr,
+        &program_id.0,
+        &vote_account_addr.0,
+        &stake_pool_addr.0,
         seed,
     )
-    .map(|(pk, bump)| FoundPda(pubkey_to_js(&pk), bump))
+    .map(|(pk, bump)| FoundPda(B58PK::new(pk), bump))
     .ok_or_else(no_valid_pda)
 }
 
@@ -101,14 +88,11 @@ pub fn find_transient_stake_account_pda(
 /// - if no valid PDA was found
 #[wasm_bindgen(js_name = findEphemeralStakeAccountPda)]
 pub fn find_ephemeral_stake_account_pda(
-    program_id: &str,
-    stake_pool_addr: &str,
+    program_id: B58PK,
+    stake_pool_addr: B58PK,
 ) -> Result<FoundPda, JsError> {
-    let program_id = pubkey_from_js(program_id)?;
-    let stake_pool_addr = pubkey_from_js(stake_pool_addr)?;
-
-    find_ephemeral_stake_account_pda_internal(&program_id, &stake_pool_addr)
-        .map(|(pk, bump)| FoundPda(pubkey_to_js(&pk), bump))
+    find_ephemeral_stake_account_pda_internal(&program_id.0, &stake_pool_addr.0)
+        .map(|(pk, bump)| FoundPda(B58PK::new(pk), bump))
         .ok_or_else(no_valid_pda)
 }
 

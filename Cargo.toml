@@ -14,6 +14,7 @@ edition = "2021"
 # and enable individual features in indiv crates
 borsh = { version = "^1", default-features = false }
 bs58 = { version = "^0.5", default-features = false }
+bs58-fixed-wasm = { git = "https://github.com/igneous-labs/bs58-fixed.git", branch = "master", default-features = false }
 console_error_panic_hook = "^0.1"
 const-crypto = { version = "^0.3.0", default-features = false }
 data-encoding = { version = "2.8.0", default-features = false }

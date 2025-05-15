@@ -17,7 +17,7 @@ pub use update_validator_list_balance::*;
 pub use withdraw_sol::*;
 pub use withdraw_stake::*;
 
-use crate::utils::AccountMeta;
+use crate::{utils::AccountMeta, B58PK};
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
 
@@ -27,7 +27,7 @@ use tsify_next::Tsify;
 pub struct Instruction {
     pub data: Box<[u8]>,
     pub accounts: Box<[AccountMeta]>,
-    pub program_address: Box<str>,
+    pub program_address: B58PK,
 }
 
 /// This user addrs struct is common across multiple instructions
@@ -35,6 +35,6 @@ pub struct Instruction {
 #[tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)]
 #[serde(rename_all = "camelCase")]
 pub struct ProgramAndStakePoolUserAddrs {
-    pub program: Box<str>,
-    pub stake_pool: Box<str>,
+    pub program: B58PK,
+    pub stake_pool: B58PK,
 }

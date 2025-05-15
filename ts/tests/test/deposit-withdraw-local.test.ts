@@ -29,6 +29,9 @@ import {
  * - referral-picosol-token
  */
 describe("picosol-quote-sim-local", async () => {
+  // For some reason the first sequential test always take a long time
+  // ~10s to complete, regardless of which user action it is (deposit/withdraw sol/stake)
+
   it.sequential("deposit-sol", async () => {
     const keypair = await readTestFixturesKeypair("signer");
     const referralToken = readTestFixturesAccPk("referral-picosol-token");
@@ -67,20 +70,7 @@ describe("picosol-quote-sim-local", async () => {
       ).value.amount
     );
 
-    // New stake pool data post precondition instructions
-
-    const stakePoolHandleInfoPost = await rpcClient
-      .getAccountInfo(kit.address(accountJson.pubkey), {
-        encoding: "base64",
-      })
-      .send();
-    const stakePoolDataPost = new Uint8Array(
-      kit.getBase64Encoder().encode(stakePoolHandleInfoPost.value!.data[0])
-    );
-    const stakePoolHandlePost = deserStakePool(stakePoolDataPost);
-    const stakePoolPost = getStakePool(stakePoolHandlePost);
-
-    const quote = quoteDepositSol(stakePoolHandlePost, 1000000n);
+    const quote = quoteDepositSol(stakePoolHandlePre, 1000000n);
 
     // Deposit SOL instruction
     const { value: blockhash } = await rpcClient.getLatestBlockhash().send();
@@ -156,11 +146,11 @@ describe("picosol-quote-sim-local", async () => {
       quote.managerFee
     );
     assert.strictEqual(
-      latestStakePool.poolTokenSupply - stakePoolPost.poolTokenSupply,
+      latestStakePool.poolTokenSupply - stakePoolPre.poolTokenSupply,
       quote.outAmount + quote.managerFee + quote.referralFee
     );
     assert.strictEqual(
-      latestStakePool.totalLamports - stakePoolPost.totalLamports,
+      latestStakePool.totalLamports - stakePoolPre.totalLamports,
       quote.inAmount
     );
   });

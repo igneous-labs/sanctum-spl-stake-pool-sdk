@@ -11,6 +11,7 @@ default = []
 
 [dependencies]
 borsh = { workspace = true }
+bs58-fixed-wasm = { workspace = true, features = ["js"]}
 ed25519-compact = { workspace = true }
 hmac-sha256 = { workspace = true }
 wasm-bindgen = { workspace = true }

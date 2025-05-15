@@ -1,5 +1,4 @@
 use crate::{
-    conv::{pubkey_from_js, pubkey_to_js},
     err::{no_valid_pda, validator_idx_oob},
     find_pda, find_withdraw_auth_pda_internal,
     utils::{keys_signer_writer_to_account_metas, AccountMeta, Role},
@@ -49,10 +48,7 @@ pub fn update_validator_list_balance_ix_from_stake_pool(
     validator_list_handle: &ValidatorListHandle,
     args: UpdateValidatorListBalanceIxArgs,
 ) -> Result<Instruction, JsError> {
-    let stake_pool_addr = pubkey_from_js(&stake_pool)?;
-    let program_addr = pubkey_from_js(&program)?;
-
-    let withdraw_authority = find_withdraw_auth_pda_internal(&program_addr, &stake_pool_addr)
+    let withdraw_authority = find_withdraw_auth_pda_internal(&program.0, &stake_pool.0)
         .ok_or_else(no_valid_pda)?
         .0;
     let validator_list = validator_list_handle.0.as_borrowed();
@@ -68,29 +64,26 @@ pub fn update_validator_list_balance_ix_from_stake_pool(
     let accounts = UpdateValidatorListBalanceIxPrefixKeysHandle(
         stake_pool_sdk::UpdateValidatorListBalanceIxPrefixKeysOwned::default()
             .with_keys_from_stake_pool(&stake_pool_handle.0)
-            .with_stake_pool(stake_pool_addr)
+            .with_stake_pool(stake_pool.0)
             .with_withdraw_auth(withdraw_authority)
             .with_consts(),
     )
     .to_account_metas();
 
     let vsa_tsa_pairs = validator_list
-        .account_pair_seeds_itr(&stake_pool_addr)
+        .account_pair_seeds_itr(&stake_pool.0)
         .skip(args.start_index)
         .take(args.count)
         .flat_map(|((v1, v2, v3), (t1, t2, t3, t4))| {
             [
-                find_pda(
-                    &[v1.as_slice(), v2.as_slice(), v3.as_slice()],
-                    &program_addr,
-                ),
-                find_pda(&[t1, t2, t3, &t4], &program_addr),
+                find_pda(&[v1.as_slice(), v2.as_slice(), v3.as_slice()], &program.0),
+                find_pda(&[t1, t2, t3, &t4], &program.0),
             ]
             .into_iter()
             .map(|pda_opt| {
                 pda_opt.map_or_else(
                     || Err(no_valid_pda()),
-                    |(pda, _bump)| Ok(AccountMeta::new(pubkey_to_js(&pda), Role::Writable)),
+                    |(pda, _bump)| Ok(AccountMeta::new(pda, Role::Writable)),
                 )
             })
         });

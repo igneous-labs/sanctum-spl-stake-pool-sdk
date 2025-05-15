@@ -6,10 +6,10 @@ use sanctum_spl_stake_pool_core as stake_pool_sdk;
 use wasm_bindgen::{prelude::wasm_bindgen, JsError};
 
 use crate::{
-    conv::{pubkey_from_js, pubkey_to_js},
     err::no_valid_pda,
     find_deposit_auth_pda_internal, find_withdraw_auth_pda_internal,
     utils::{keys_signer_writer_to_account_metas, AccountMeta, Role},
+    B58PK,
 };
 
 use super::Instruction;
@@ -33,18 +33,18 @@ pub struct InitializeIxKeysHandle(stake_pool_sdk::InitializeIxPrefixKeysOwned);
 #[tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)]
 #[serde(rename_all = "camelCase")]
 pub struct InitializeIxUserAddrs {
-    pub program: Box<str>,
-    pub stake_pool: Box<str>,
-    pub manager: Box<str>,
-    pub manager_fee: Box<str>,
-    pub staker: Box<str>,
-    pub validator_list: Box<str>,
-    pub reserve: Box<str>,
-    pub pool_mint: Box<str>,
-    pub pool_token_program: Box<str>,
+    pub program: B58PK,
+    pub stake_pool: B58PK,
+    pub manager: B58PK,
+    pub manager_fee: B58PK,
+    pub staker: B58PK,
+    pub validator_list: B58PK,
+    pub reserve: B58PK,
+    pub pool_mint: B58PK,
+    pub pool_token_program: B58PK,
 
     #[tsify(optional)]
-    pub deposit_authority: Option<Box<str>>,
+    pub deposit_authority: Option<B58PK>,
 }
 
 /// @throws if
@@ -67,23 +67,14 @@ pub fn initialize_ix(
     }: InitializeIxUserAddrs,
     args: InitializeIxArgs,
 ) -> Result<Instruction, JsError> {
-    let program_addr = pubkey_from_js(&program)?;
-    let stake_pool_addr = pubkey_from_js(&stake_pool)?;
-    let manager_addr = pubkey_from_js(&manager)?;
-    let staker_addr = pubkey_from_js(&staker)?;
-    let validator_list_addr = pubkey_from_js(&validator_list)?;
-    let reserve_addr = pubkey_from_js(&reserve)?;
-    let pool_mint_addr = pubkey_from_js(&pool_mint)?;
-    let pool_token_program_addr = pubkey_from_js(&pool_token_program)?;
-    let manager_fee_addr = pubkey_from_js(&manager_fee)?;
-    let withdraw_authority = find_withdraw_auth_pda_internal(&program_addr, &stake_pool_addr)
+    let withdraw_authority = find_withdraw_auth_pda_internal(&program.0, &stake_pool.0)
         .ok_or_else(no_valid_pda)?
         .0;
 
     let deposit_authority = match deposit_authority {
-        Some(s) => pubkey_from_js(&s)?,
+        Some(s) => s.0,
         None => {
-            find_deposit_auth_pda_internal(&program_addr, &stake_pool_addr)
+            find_deposit_auth_pda_internal(&program.0, &stake_pool.0)
                 .ok_or_else(no_valid_pda)?
                 .0
         }
@@ -91,15 +82,15 @@ pub fn initialize_ix(
 
     let accounts = InitializeIxKeysHandle(
         stake_pool_sdk::InitializeIxPrefixKeysOwned::default()
-            .with_stake_pool(stake_pool_addr)
+            .with_stake_pool(stake_pool.0)
             .with_withdraw_auth(withdraw_authority)
-            .with_validator_list(validator_list_addr)
-            .with_reserve(reserve_addr)
-            .with_pool_mint(pool_mint_addr)
-            .with_manager_fee(manager_fee_addr)
-            .with_manager(manager_addr)
-            .with_staker(staker_addr)
-            .with_pool_token_prog(pool_token_program_addr),
+            .with_validator_list(validator_list.0)
+            .with_reserve(reserve.0)
+            .with_pool_mint(pool_mint.0)
+            .with_manager_fee(manager_fee.0)
+            .with_manager(manager.0)
+            .with_staker(staker.0)
+            .with_pool_token_prog(pool_token_program.0),
     )
     .to_account_metas();
 
@@ -116,7 +107,7 @@ pub fn initialize_ix(
         accounts: accounts
             .into_iter()
             .chain(std::iter::once(AccountMeta::new(
-                pubkey_to_js(&deposit_authority),
+                deposit_authority,
                 Role::Readonly,
             )))
             .collect(),

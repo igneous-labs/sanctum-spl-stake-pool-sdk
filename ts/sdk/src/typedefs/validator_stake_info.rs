@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
 use wasm_bindgen::JsError;
 
-use crate::conv::{pubkey_from_js, pubkey_to_js};
+use crate::B58PK;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)]
@@ -38,7 +38,7 @@ pub struct ValidatorStakeInfo {
     pub status: StakeStatus,
 
     /// Validator vote account address
-    pub vote_account_address: Box<str>,
+    pub vote_account_address: B58PK,
 }
 
 impl ValidatorStakeInfo {
@@ -61,7 +61,7 @@ impl ValidatorStakeInfo {
         res.set_transient_seed_suffix(*transient_seed_suffix);
         res.set_validator_seed_suffix(NonZeroU32::new(*validator_seed_suffix));
         res.set_status(*status);
-        res.set_vote_account_address(pubkey_from_js(vote_account_address)?);
+        res.set_vote_account_address(vote_account_address.0);
         Ok(res)
     }
 
@@ -73,7 +73,7 @@ impl ValidatorStakeInfo {
             transient_seed_suffix: vsi.transient_seed_suffix(),
             validator_seed_suffix: vsi.validator_seed_suffix().map_or_else(|| 0, |n| n.get()),
             status: vsi.status(),
-            vote_account_address: pubkey_to_js(vsi.vote_account_address()),
+            vote_account_address: B58PK::new(*vsi.vote_account_address()),
         }
     }
 }

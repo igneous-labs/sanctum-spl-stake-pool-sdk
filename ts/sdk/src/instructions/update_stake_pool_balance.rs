@@ -6,7 +6,6 @@ use tsify_next::declare;
 use wasm_bindgen::{prelude::wasm_bindgen, JsError};
 
 use crate::{
-    conv::pubkey_from_js,
     err::no_valid_pda,
     find_withdraw_auth_pda_internal,
     utils::{keys_signer_writer_to_account_metas, AccountMeta},
@@ -33,16 +32,13 @@ pub fn update_stake_pool_balance_ix_from_stake_pool(
     }: UpdateStakePoolBalanceIxUserAddrs,
     stake_pool_handle: &StakePoolHandle,
 ) -> Result<Instruction, JsError> {
-    let program_addr = pubkey_from_js(&program)?;
-    let stake_pool_addr = pubkey_from_js(&stake_pool)?;
-
-    let withdraw_authority = find_withdraw_auth_pda_internal(&program_addr, &stake_pool_addr)
+    let withdraw_authority = find_withdraw_auth_pda_internal(&program.0, &stake_pool.0)
         .ok_or_else(no_valid_pda)?
         .0;
 
     let accounts = stake_pool_sdk::UpdateStakePoolBalanceIxKeysOwned::default()
         .with_keys_from_stake_pool(&stake_pool_handle.0)
-        .with_stake_pool(stake_pool_addr)
+        .with_stake_pool(stake_pool.0)
         .with_withdraw_auth(withdraw_authority);
 
     Ok(Instruction {

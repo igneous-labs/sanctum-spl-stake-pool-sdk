@@ -2,7 +2,7 @@ Typescript tests for the ts sdk.
 
 ## Setup
 
-`bun install`
+`pnpm install`
 
 ## Run
 
@@ -22,7 +22,7 @@ docker compose -f ../../docker-compose-local-validator.yml up
 Then run the test script with:
 
 ```sh
-`bun ./index.ts`
+`pnpm ./index.ts`
 ```
 
 Teardown local validator with

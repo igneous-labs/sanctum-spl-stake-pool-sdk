@@ -1,6 +1,7 @@
 import {
   address,
   createKeyPairSignerFromBytes,
+  getAddressDecoder,
   type Address,
   type KeyPairSigner,
 } from "@solana/kit";
@@ -30,4 +31,9 @@ export function readTestFixturesKeypair(
     )
   );
   return createKeyPairSignerFromBytes(new Uint8Array(bytes));
+}
+
+export function randPubkey(): Address {
+  const b = crypto.getRandomValues(new Uint8Array(32));
+  return getAddressDecoder().decode(b);
 }

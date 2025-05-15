@@ -1,11 +1,23 @@
 import { describe, it, assert } from "vitest";
 import { readTestFixturesJsonFile } from "./utils";
-import * as kit from "@solana/kit";
 import {
   deserStakePool,
   getStakePool,
   increaseAdditionalValidatorStakeIxFromStakePool,
 } from "@sanctumso/spl-stake-pool";
+import {
+  appendTransactionMessageInstructions,
+  blockhash,
+  compileTransaction,
+  createSolanaRpc,
+  createTransactionMessage,
+  getBase64EncodedWireTransaction,
+  pipe,
+  setTransactionMessageFeePayer,
+  setTransactionMessageLifetimeUsingBlockhash,
+  type Address,
+  type IInstruction,
+} from "@solana/kit";
 
 describe("increase-additional-validator-stake", async () => {
   it("increase-additional-validator-stake-sim-mainnet", async () => {
@@ -27,33 +39,33 @@ describe("increase-additional-validator-stake", async () => {
         transientStakeSeed: 0n,
         validatorStakeSeed: undefined,
       }
-    ) as unknown as kit.IInstruction;
+    ) as unknown as IInstruction;
 
-    let rpcClient = kit.createSolanaRpc("https://api.mainnet-beta.solana.com");
+    let rpcClient = createSolanaRpc("https://api.mainnet-beta.solana.com");
 
-    const simulatedTx = kit.pipe(
-      kit.createTransactionMessage({
+    const simulatedTx = pipe(
+      createTransactionMessage({
         version: 0,
       }),
-      (txm) => kit.appendTransactionMessageInstructions([ix], txm),
+      (txm) => appendTransactionMessageInstructions([ix], txm),
       (txm) =>
-        kit.setTransactionMessageFeePayer(
-          stakePool.manager as kit.Address<string>,
+        setTransactionMessageFeePayer(
+          stakePool.manager as Address<string>,
           txm
         ),
       (txm) =>
-        kit.setTransactionMessageLifetimeUsingBlockhash(
+        setTransactionMessageLifetimeUsingBlockhash(
           {
-            blockhash: kit.blockhash("11111111111111111111111111111111"),
+            blockhash: blockhash("11111111111111111111111111111111"),
             lastValidBlockHeight: 0n,
           },
           txm
         ),
-      kit.compileTransaction
+      compileTransaction
     );
 
     const simulation = await rpcClient
-      .simulateTransaction(kit.getBase64EncodedWireTransaction(simulatedTx), {
+      .simulateTransaction(getBase64EncodedWireTransaction(simulatedTx), {
         encoding: "base64",
         sigVerify: false,
         replaceRecentBlockhash: true,

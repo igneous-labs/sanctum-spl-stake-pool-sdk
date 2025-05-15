@@ -22,7 +22,7 @@ docker compose -f ../../docker-compose-local-validator.yml up
 Then run the test script with:
 
 ```sh
-`pnpm ./index.ts`
+`pnpm test`
 ```
 
 Teardown local validator with

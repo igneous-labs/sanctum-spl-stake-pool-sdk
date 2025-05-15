@@ -2,13 +2,18 @@
   "name": "tests",
   "module": "index.ts",
   "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "vitest run"
+  },
   "dependencies": {
-    "sanctum-spl-stake-pool-ts": "file:../sdk/pkg",
+    "@sanctumso/spl-stake-pool": "file:../sdk/pkg",
     "@solana/kit": "^2.1.0"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
-    "@types/node": "^22"
+    "@types/node": "^22",
+    "vitest": "^2"
   }
 }

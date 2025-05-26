@@ -112,7 +112,7 @@ pub fn find_deposit_auth_pda_internal(
     find_pda(&[s1.as_slice(), s2.as_slice()], program_id)
 }
 
-pub(crate) fn find_validator_stake_account_pda_internal(
+pub fn find_validator_stake_account_pda_internal(
     program_id: &[u8; 32],
     vote_account_addr: &[u8; 32],
     stake_pool_addr: &[u8; 32],

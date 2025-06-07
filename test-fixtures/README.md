@@ -8,8 +8,10 @@ This can be achieved from existing accounts by editing their raw bytes, re-encod
 
 ## Stake Pools
 
-- picosol stake pool data collected at epoch 787 with the following fee changes to make sure we cover different test cases:
-  - epoch fee unchanged at 25/1000
-  - stake deposit fee changed from 0/100 to 1/10000
-  - stake withdrawal fee unchanged at 1/1000
-  - sol deposit fee changed from 0/100 to 1/5000
+- picosol stake pool data collected at epoch 787:
+  - fee settings (changes made to make sure we cover different test cases):
+    - epoch fee unchanged at 25/1000
+    - stake deposit fee changed from 0/100 to 1/10000
+    - stake withdrawal fee unchanged at 1/1000
+    - sol deposit fee changed from 0/100 to 1/5000
+  - changed last update epoch of all involved accounts (pool, vsa, validator list) to 0

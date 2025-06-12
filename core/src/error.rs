@@ -5,9 +5,11 @@ pub enum SplStakePoolError {
     CalculationFailure,
     IncorrectDepositVoteAddress,
     InvalidSolDepositAuthority,
+    InvalidStakeDepositAuthority,
     InvalidState,
     SolWithdrawalTooLarge,
     StakeListAndPoolOutOfDate,
+    ValidatorNotFound,
 }
 
 impl Display for SplStakePoolError {

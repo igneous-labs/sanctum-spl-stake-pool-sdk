@@ -6,12 +6,14 @@ For example, `signer-picosol-token-deposit-sol.json` is a picoSOL spl token acco
 
 This can be achieved from existing accounts by editing their raw bytes, re-encoding it to base64 and updating the test-fixtures json account file.
 
-## Stake Pools
+## Accounts Notes
 
+- `deposit-stake` activation epoch changed to 0 so that its fully active for the test
 - picosol stake pool data collected at epoch 787:
   - fee settings (changes made to make sure we cover different test cases):
     - epoch fee unchanged at 25/1000
     - stake deposit fee changed from 0/100 to 1/10000
     - stake withdrawal fee unchanged at 1/1000
     - sol deposit fee changed from 0/100 to 1/5000
-  - changed last update epoch of all involved accounts (pool, vsa, validator list) to 0
+  - vsa activation epoch changed to 0 so that its fully active for the test
+  - changed last update epoch of all involved accounts (pool, validator list) to 1

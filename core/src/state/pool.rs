@@ -235,16 +235,20 @@ impl StakePool {
     pub fn quote_deposit_stake(
         &self,
         stake_account_lamports: StakeAccountLamports,
-        args: DepositStakeQuoteArgs,
+        DepositStakeQuoteArgs {
+            validator_status,
+            validator_vote,
+            current_epoch,
+        }: &DepositStakeQuoteArgs,
     ) -> Result<DepositStakeQuote, SplStakePoolError> {
-        if !self.is_updated_for_epoch(args.current_epoch) {
+        if !self.is_updated_for_epoch(*current_epoch) {
             return Err(SplStakePoolError::StakeListAndPoolOutOfDate);
         }
 
-        if !self.can_deposit_stake_of(&args.validator) {
+        if !self.can_deposit_stake_of(validator_vote) {
             return Err(SplStakePoolError::IncorrectDepositVoteAddress);
         }
-        if args.validator_stake_info.status() != StakeStatus::Active {
+        if *validator_status != StakeStatus::Active {
             return Err(SplStakePoolError::InvalidState);
         }
 

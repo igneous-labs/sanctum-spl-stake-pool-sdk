@@ -24,3 +24,7 @@ pub const ASSOCIATED_TOKEN_PROGRAM: [u8; 32] =
     bs58::decode_pubkey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 
 pub const STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS: u64 = 2282880;
+
+/// Minimum amount of staked lamports required in a validator stake account
+/// enforced by the spl stake pool program.
+pub const MIN_ACTIVE_STAKE: u64 = 1_000_000;

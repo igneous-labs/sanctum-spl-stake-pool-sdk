@@ -1,13 +1,17 @@
 use core::{error::Error, fmt::Display};
 
+/// NB: this is not in the order defined by the program
+/// TODO: `seqconsts!()` this to make it so
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SplStakePoolError {
     CalculationFailure,
     IncorrectDepositVoteAddress,
+    IncorrectWithdrawVoteAddress,
     InvalidSolDepositAuthority,
     InvalidStakeDepositAuthority,
     InvalidState,
     SolWithdrawalTooLarge,
+    StakeLamportsNotEqualToMinimum,
     StakeListAndPoolOutOfDate,
     ValidatorNotFound,
 }

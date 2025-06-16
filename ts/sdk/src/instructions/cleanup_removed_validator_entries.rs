@@ -6,6 +6,7 @@ use sanctum_spl_stake_pool_core::{
     self as stake_pool_sdk, CLEANUP_REMOVED_VALIDATOR_ENTRIES_IX_IS_SIGNER,
     CLEANUP_REMOVED_VALIDATOR_ENTRIES_IX_IS_WRITER,
 };
+use serde_bytes::ByteBuf;
 use tsify_next::declare;
 use wasm_bindgen::{prelude::wasm_bindgen, JsError};
 
@@ -35,7 +36,7 @@ pub fn cleanup_removed_validator_entries_ix_from_stake_pool(
         .with_stake_pool(stake_pool.0);
 
     Ok(Instruction {
-        data: Box::new(stake_pool_sdk::CleanupRemovedValidatorEntriesIxData::new().to_buf()),
+        data: ByteBuf::from(stake_pool_sdk::CleanupRemovedValidatorEntriesIxData::new().to_buf()),
         accounts: Box::new(CleanupRemovedValidatorEntriesIxKeysHandle(accounts).to_account_metas()),
         program_address: program,
     })

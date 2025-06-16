@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_bytes::ByteBuf;
 use tsify_next::Tsify;
 
 use sanctum_spl_stake_pool_core as stake_pool_sdk;
@@ -75,7 +76,7 @@ pub fn withdraw_stake_ix_from_stake_pool(
     let data = stake_pool_sdk::WithdrawStakeIxData::new(args.pool_tokens_in);
 
     Ok(Instruction {
-        data: data.to_buf().into(),
+        data: ByteBuf::from(data.to_buf()),
         accounts: Box::new(accounts),
         program_address: program,
     })

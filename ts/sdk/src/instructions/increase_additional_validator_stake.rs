@@ -1,6 +1,7 @@
 use std::num::NonZeroU32;
 
 use serde::{Deserialize, Serialize};
+use serde_bytes::ByteBuf;
 use tsify_next::Tsify;
 use wasm_bindgen::{prelude::wasm_bindgen, JsError};
 
@@ -94,7 +95,7 @@ pub fn increase_additional_validator_stake_ix_from_stake_pool(
     .to_buf();
 
     Ok(Instruction {
-        data: data.as_slice().into(),
+        data: ByteBuf::from(data),
         accounts: Box::new(
             IncreaseAdditionalValidatorStakeIxKeysHandle(accounts).to_account_metas(),
         ),

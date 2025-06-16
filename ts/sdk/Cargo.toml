@@ -18,16 +18,9 @@ wasm-bindgen = { workspace = true }
 sanctum-spl-stake-pool-core = { workspace = true , features = ["wasm"] }
 tsify-next = { workspace = true, features = ["js"]}
 serde = { workspace = true }
-serde_bytes = { workspace = true, features = ["std"] }
+serde_bytes = { workspace = true }
 bs58 = { workspace = true }
 
-# The `console_error_panic_hook` crate provides better debugging of panics by
-# logging them with `console.error`. This is great for development, but requires
-# all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
-# code size when deploying.
-console_error_panic_hook = { workspace = true, optional = true }
-
 [dev-dependencies]
-proptest = { workspace = true }
+proptest = { workspace = true, features = ["std"] }
 solana-pubkey = { workspace = true, features = ["curve25519"] }
-wasm-bindgen-test = { workspace = true }

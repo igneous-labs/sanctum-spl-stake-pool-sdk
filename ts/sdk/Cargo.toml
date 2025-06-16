@@ -28,6 +28,5 @@ bs58 = { workspace = true }
 console_error_panic_hook = { workspace = true, optional = true }
 
 [dev-dependencies]
-proptest = { workspace = true }
+proptest = { workspace = true, features = ["std"] }
 solana-pubkey = { workspace = true, features = ["curve25519"] }
-wasm-bindgen-test = { workspace = true }

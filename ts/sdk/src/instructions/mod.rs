@@ -12,6 +12,7 @@ pub use deposit_sol::*;
 pub use deposit_stake::*;
 pub use increase_additional_validator_stake::*;
 pub use initialize::*;
+use serde_bytes::ByteBuf;
 pub use update_stake_pool_balance::*;
 pub use update_validator_list_balance::*;
 pub use withdraw_sol::*;
@@ -25,7 +26,7 @@ use tsify_next::Tsify;
 #[tsify(into_wasm_abi, from_wasm_abi)]
 #[serde(rename_all = "camelCase")]
 pub struct Instruction {
-    pub data: Box<[u8]>,
+    pub data: ByteBuf,
     pub accounts: Box<[AccountMeta]>,
     pub program_address: B58PK,
 }

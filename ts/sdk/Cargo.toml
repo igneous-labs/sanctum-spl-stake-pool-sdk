@@ -18,7 +18,7 @@ wasm-bindgen = { workspace = true }
 sanctum-spl-stake-pool-core = { workspace = true , features = ["wasm"] }
 tsify-next = { workspace = true, features = ["js"]}
 serde = { workspace = true }
-serde_bytes = { workspace = true, features = ["std"] }
+serde_bytes = { workspace = true }
 bs58 = { workspace = true }
 
 [dev-dependencies]

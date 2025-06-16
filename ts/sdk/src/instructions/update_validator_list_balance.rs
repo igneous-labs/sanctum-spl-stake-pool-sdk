@@ -11,6 +11,7 @@ use sanctum_spl_stake_pool_core::{
 };
 use serde::{Deserialize, Serialize};
 
+use serde_bytes::ByteBuf;
 use tsify_next::{declare, Tsify};
 use wasm_bindgen::{prelude::wasm_bindgen, JsError};
 
@@ -98,7 +99,7 @@ pub fn update_validator_list_balance_ix_from_stake_pool(
         accounts.into_iter().map(Ok).chain(vsa_tsa_pairs).collect();
 
     Ok(Instruction {
-        data: data.as_slice().into(),
+        data: ByteBuf::from(data),
         accounts: accounts?,
         program_address: program,
     })

@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_bytes::ByteBuf;
 use tsify_next::Tsify;
 use wasm_bindgen::{prelude::wasm_bindgen, JsError};
 
@@ -69,7 +70,7 @@ pub fn withdraw_sol_ix_from_stake_pool(
     let data = stake_pool_sdk::WithdrawSolIxData::new(args.pool_tokens_in);
 
     Ok(Instruction {
-        data: data.to_buf().into(),
+        data: ByteBuf::from(data.to_buf()),
         accounts: accounts
             .into_iter()
             .chain(

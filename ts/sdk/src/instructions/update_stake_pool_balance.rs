@@ -2,6 +2,7 @@ use sanctum_spl_stake_pool_core::{
     self as stake_pool_sdk, UPDATE_STAKE_POOL_BALANCE_IX_IS_SIGNER,
     UPDATE_STAKE_POOL_BALANCE_IX_IS_WRITER,
 };
+use serde_bytes::ByteBuf;
 use tsify_next::declare;
 use wasm_bindgen::{prelude::wasm_bindgen, JsError};
 
@@ -42,7 +43,7 @@ pub fn update_stake_pool_balance_ix_from_stake_pool(
         .with_withdraw_auth(withdraw_authority);
 
     Ok(Instruction {
-        data: Box::new(stake_pool_sdk::UpdateStakePoolBalanceIxData::new().to_buf()),
+        data: ByteBuf::from(stake_pool_sdk::UpdateStakePoolBalanceIxData::new().to_buf()),
         accounts: Box::new(UpdateStakePoolBalanceIxKeysHandle(accounts).to_account_metas()),
         program_address: program,
     })

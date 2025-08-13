@@ -1,18 +1,8 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 
-use crate::{ValidatorStakeInfo, STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS};
+use crate::{StakeStatus, ValidatorStakeInfo, STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS};
 
-#[derive(Debug, Clone, Copy, BorshSerialize, BorshDeserialize)]
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "camelCase")
-)]
-#[cfg_attr(
-    feature = "wasm",
-    derive(tsify_next::Tsify),
-    tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, BorshSerialize, BorshDeserialize)]
 pub struct DepositSolQuoteArgs {
     pub depositor: [u8; 32],
     pub current_epoch: u64,
@@ -44,24 +34,25 @@ impl DepositSolQuote {
     }
 }
 
-#[derive(Debug, Clone, Copy, BorshSerialize, BorshDeserialize)]
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "camelCase")
-)]
-#[cfg_attr(
-    feature = "wasm",
-    derive(tsify_next::Tsify),
-    tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
-)]
-pub struct DepositStakeQuoteArgs {
-    pub validator_stake_info: ValidatorStakeInfo,
-    pub validator: [u8; 32],
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DepositStakeQuoteArgs<'a> {
+    pub validator_status: StakeStatus,
+    pub validator_vote: &'a [u8; 32],
     pub current_epoch: u64,
 }
 
-#[derive(Debug, Clone, Copy, BorshSerialize, BorshDeserialize, PartialEq, Eq)]
+impl<'a> DepositStakeQuoteArgs<'a> {
+    #[inline]
+    pub fn new(vsi: &'a ValidatorStakeInfo, current_epoch: u64) -> Self {
+        Self {
+            validator_status: vsi.status(),
+            validator_vote: vsi.vote_account_address(),
+            current_epoch,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),

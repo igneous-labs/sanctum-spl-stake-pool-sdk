@@ -19,9 +19,9 @@ sanctum-u64-ratio = { workspace = true }
 # optional
 serde = { workspace = true, default-features = false, features = ["derive"], optional = true }
 serde_bytes = { workspace = true, default-features = false, optional = true }
-tsify-next = { workspace = true, default-features = false, features = ["js"] , optional = true }
+tsify-next = { workspace = true, default-features = false, optional = true }
 wasm-bindgen = { workspace = true, optional = true }
 
 [dev-dependencies]
 data-encoding = { workspace = true, features = ["alloc"] }
-serde_json = { workspace = true }
+serde_json = { workspace = true, features = ["alloc"] }

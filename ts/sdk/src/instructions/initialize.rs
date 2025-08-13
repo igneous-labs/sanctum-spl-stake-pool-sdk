@@ -1,5 +1,6 @@
 use sanctum_spl_stake_pool_core::Fee;
 use serde::{Deserialize, Serialize};
+use serde_bytes::ByteBuf;
 use tsify_next::Tsify;
 
 use sanctum_spl_stake_pool_core as stake_pool_sdk;
@@ -103,7 +104,7 @@ pub fn initialize_ix(
     );
 
     Ok(Instruction {
-        data: data.to_buf().into(),
+        data: ByteBuf::from(data.to_buf()),
         accounts: accounts
             .into_iter()
             .chain(std::iter::once(AccountMeta::new(

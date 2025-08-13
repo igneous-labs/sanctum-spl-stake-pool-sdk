@@ -4,6 +4,7 @@ use sanctum_spl_stake_pool_core::{
     self as stake_pool_sdk, DEPOSIT_STAKE_IX_IS_SIGNER, DEPOSIT_STAKE_IX_IS_WRITER,
 };
 use serde::{Deserialize, Serialize};
+use serde_bytes::ByteBuf;
 use tsify_next::Tsify;
 use wasm_bindgen::{prelude::wasm_bindgen, JsError};
 
@@ -73,7 +74,7 @@ pub fn deposit_stake_ix_from_stake_pool(
         .with_referral_pool_tokens(referral_pool_tokens.0);
 
     Ok(Instruction {
-        data: Box::new(stake_pool_sdk::DepositStakeIxData::new().to_buf()),
+        data: ByteBuf::from(stake_pool_sdk::DepositStakeIxData::new().to_buf()),
         accounts: Box::new(DepositStakeIxKeysHandle(accounts).to_account_metas()),
         program_address: program,
     })

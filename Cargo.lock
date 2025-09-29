@@ -487,9 +487,9 @@ checksum = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
 
 [[package]]
 name = "sanctum-fee-ratio"
-version = "1.0.0"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99dfee0bf22f2e18e9b28d2cc2984e4e6d02c135a8d3e137e77d6dea61961dac"
+checksum = "a1c2233e749deeeb7d7fb6d4350c8941eb8ec996933eb30c4db50a186d789c6d"
 dependencies = [
  "sanctum-u64-ratio",
 ]
@@ -513,9 +513,9 @@ dependencies = [
 
 [[package]]
 name = "sanctum-u64-ratio"
-version = "1.0.0"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d1ad689849ff8e180d7fd311efe21ed6bca2ca9709d1dffdc1a52faf393e812"
+checksum = "8e15bef5560539ed416f49fe8d5430b80699aa7279dcbe35e1f25800894c19b2"
 
 [[package]]
 name = "scopeguard"

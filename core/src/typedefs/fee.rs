@@ -1,5 +1,5 @@
 use borsh::{BorshDeserialize, BorshSerialize};
-use sanctum_u64_ratio::{Floor, Ratio};
+use sanctum_u64_ratio::{Ceil, Floor, Ratio};
 
 // TODO: derivation of Eq might be wrong since fraction equality is not necessarily bit equality,
 // but this is how upstream does it
@@ -15,7 +15,7 @@ pub struct Fee {
     pub numerator: u64,
 }
 
-type F = sanctum_fee_ratio::Fee<Floor<Ratio<u64, u64>>>;
+type F = sanctum_fee_ratio::Fee<Ceil<Ratio<u64, u64>>>;
 
 impl Fee {
     pub const ZERO: Self = Self {
@@ -24,7 +24,7 @@ impl Fee {
     };
 
     #[inline]
-    pub const fn to_fee_floor(&self) -> Option<F> {
+    pub const fn to_fee_ceil(&self) -> Option<F> {
         F::new(Ratio {
             n: self.numerator,
             d: self.denominator,
@@ -43,6 +43,7 @@ impl Fee {
     inherent_borsh_serde!();
 }
 
+/// Referall uses [`Floor`] instead of [`Ceil`]
 type RF = sanctum_fee_ratio::Fee<Floor<Ratio<u8, u8>>>;
 
 /// Just use `self.0` for any fee operations.

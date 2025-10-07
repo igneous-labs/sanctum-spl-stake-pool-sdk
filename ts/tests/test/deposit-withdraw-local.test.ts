@@ -193,7 +193,7 @@ describe("picosol-quote-sim-local", async () => {
     const stakePool = getStakePool(stakePoolHandle);
 
     let quote = quoteDepositStake(stakePoolHandle, {
-      staked: 117349565740842n,
+      staked: 117_349_565_740_842n,
       unstaked: 2282880n,
     });
 
@@ -217,7 +217,7 @@ describe("picosol-quote-sim-local", async () => {
         program: "SP12tWFxD9oJsVWNavTTBZvMbA6gkAmxtVgxdqvyvhY",
         stakePool: accountJson.pubkey,
         depositStake: readTestFixturesAccPk("deposit-stake"),
-        validatorVote: readTestFixturesAccPk("picosol-vote-account"),
+        validatorVote: "3xjfK9C9YNcta8MvK1US4sQ3bc6DEjoJoR3qLExGf9xE", // picosol vote acc
         poolTokensTo: signerToken,
         referralPoolTokens: referralToken,
       },

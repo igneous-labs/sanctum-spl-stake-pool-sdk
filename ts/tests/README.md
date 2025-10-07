@@ -16,7 +16,7 @@ make
 Start the local validator with
 
 ```sh
-docker compose -f ../../docker-compose-local-validator.yml up
+pnpm start:infra
 ```
 
 Then run the test script with:
@@ -28,5 +28,5 @@ pnpm test
 Teardown local validator with
 
 ```sh
-docker compose -f ../../docker-compose-local-validator.yml down
+pnpm stop:infra
 ```

@@ -4,7 +4,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "start:infra": "docker compose -f ../../docker-compose-local-validator.yml up -d",
+    "stop:infra": "docker compose -f ../../docker-compose-local-validator.yml down -v"
   },
   "dependencies": {
     "@sanctumso/spl-stake-pool": "file:../sdk/pkg",

@@ -210,10 +210,7 @@ impl StakePool {
     #[inline]
     pub fn quote_deposit_sol_unchecked(&self, lamports: u64) -> Option<DepositSolQuote> {
         let new_pool_tokens = self.lamports_to_pool_tokens(lamports)?;
-        let after_sol_deposit_fee = self
-            .sol_deposit_fee
-            .to_fee_floor()?
-            .apply(new_pool_tokens)?;
+        let after_sol_deposit_fee = self.sol_deposit_fee.to_fee_ceil()?.apply(new_pool_tokens)?;
         let out_amount = after_sol_deposit_fee.rem();
         let referral_fee_split = self
             .sol_referral_fee()?
@@ -278,12 +275,12 @@ impl StakePool {
 
         let stake_deposit_fee = self
             .stake_deposit_fee
-            .to_fee_floor()?
+            .to_fee_ceil()?
             .apply(new_pool_tokens_from_stake)?
             .fee();
         let sol_deposit_fee = self
             .sol_deposit_fee
-            .to_fee_floor()?
+            .to_fee_ceil()?
             .apply(new_pool_tokens_from_sol)?
             .fee();
         let total_fee = stake_deposit_fee.checked_add(sol_deposit_fee)?;
@@ -328,8 +325,7 @@ impl StakePool {
     /// - the reserve stake does not have enough SOL to service the withdrawal
     #[inline]
     pub fn quote_withdraw_sol_unchecked(&self, pool_tokens: u64) -> Option<WithdrawSolQuote> {
-        let after_sol_withdrawal_fee =
-            self.sol_withdrawal_fee.to_fee_floor()?.apply(pool_tokens)?;
+        let after_sol_withdrawal_fee = self.sol_withdrawal_fee.to_fee_ceil()?.apply(pool_tokens)?;
         let new_lamports = self.pool_tokens_to_lamports(after_sol_withdrawal_fee.rem())?;
 
         Some(WithdrawSolQuote {
@@ -365,7 +361,7 @@ impl StakePool {
     pub fn quote_withdraw_stake_unchecked(&self, pool_tokens: u64) -> Option<WithdrawStakeQuote> {
         let after_stake_withdrawal_fee = self
             .stake_withdrawal_fee
-            .to_fee_floor()?
+            .to_fee_ceil()?
             .apply(pool_tokens)?;
 
         Some(WithdrawStakeQuote {

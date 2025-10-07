@@ -3,21 +3,26 @@ services:
     image: docker.io/lifeofpavs/solana-test-validator:latest
     command: [
         "solana-test-validator",
-        "-r", # Reset flag
+        "-r", # reset
+        # Warp to epoch 1
+        "-w",
+        "648000",
+        # Accounts fixtures
         "--account-dir",
         "/test-fixtures",
+        # Programs fixtures
         "--bpf-program",
         "SP12tWFxD9oJsVWNavTTBZvMbA6gkAmxtVgxdqvyvhY",
-        "/test-fixtures/programs/single-validator-stake-pool.so",
+        "/test-fixtures/programs/stake-pool.so",
         "--bpf-program",
         "SPMBzsVUuoHA4Jm6KunbsotaahvVikZs1JyTW6iJvbn",
-        "/test-fixtures/programs/multiple-validator-stake-pool.so",
+        "/test-fixtures/programs/stake-pool.so",
         "--bpf-program",
         "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy",
         "/test-fixtures/programs/stake-pool.so",
+        # Features
         "--deactivate-feature",
         "9onWzzvCzNC2jfhxxeqRgs5q7nFAAKpCUvkj6T6GJK9i", # deactivate 1 SOL minimum delegation stake
-        "-um",
       ]
     volumes:
       - ./test-fixtures:/test-fixtures

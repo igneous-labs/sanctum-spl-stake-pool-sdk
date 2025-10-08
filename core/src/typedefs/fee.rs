@@ -25,10 +25,16 @@ impl Fee {
 
     #[inline]
     pub const fn to_fee_ceil(&self) -> Option<F> {
-        F::new(Ratio {
-            n: self.numerator,
-            d: self.denominator,
-        })
+        // The SPL stake pool program permits denominator to = 0
+        // (treated as 0 fee in that case)
+        // But sanctum_fee_ratio does not, so we need to
+        // preprocess all 0 denom fees
+        let (n, d) = if self.denominator == 0 {
+            (0, 1)
+        } else {
+            (self.numerator, self.denominator)
+        };
+        F::new(Ratio { n, d })
     }
 }
 

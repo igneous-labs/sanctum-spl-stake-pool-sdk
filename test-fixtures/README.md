@@ -12,7 +12,7 @@ All 3 deploys of SPL currently use the exact same binary, `programs/stake-pool.s
 
 ## Accounts Notes
 
-- `deposit-stake`
+- `deposit-stake` stake account
 
   - activation epoch changed to 0
   - stake reduced to 100 SOL
@@ -26,7 +26,7 @@ All 3 deploys of SPL currently use the exact same binary, `programs/stake-pool.s
     - stake deposit fee changed from 0/100 to 1/10000
     - stake withdrawal fee unchanged at 1/1000
     - sol deposit fee changed from 0/100 to 1/5000
-  - vsa
+  - Validator stake account (vsa)
 
     - activation epoch changed to 0
     - stake reduced to 1000 SOL

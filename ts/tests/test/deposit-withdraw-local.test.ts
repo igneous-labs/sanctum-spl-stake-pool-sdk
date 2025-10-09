@@ -170,6 +170,12 @@ describe("picosol-quote-sim-local", async () => {
   });
 
   it.sequential("deposit-stake", async () => {
+    // make sure this matches test-fixture data
+    const DEPOSIT_STAKE_LAMPORTS = {
+      staked: 100_000_000_000n,
+      unstaked: 2282880n,
+    };
+
     const keypair = await readTestFixturesKeypair("signer");
     const referralToken = readTestFixturesAccPk("referral-picosol-token");
     const signerToken = readTestFixturesAccPk("signer-picosol-token");
@@ -192,10 +198,7 @@ describe("picosol-quote-sim-local", async () => {
     const stakePoolHandle = deserStakePool(stakePoolData);
     const stakePool = getStakePool(stakePoolHandle);
 
-    let quote = quoteDepositStake(stakePoolHandle, {
-      staked: 117_349_565_740_842n,
-      unstaked: 2282880n,
-    });
+    let quote = quoteDepositStake(stakePoolHandle, DEPOSIT_STAKE_LAMPORTS);
 
     const signerTokenBalanceBefore = BigInt(
       (await rpcClient.getTokenAccountBalance(signerToken).send()).value.amount
@@ -290,7 +293,7 @@ describe("picosol-quote-sim-local", async () => {
     );
     assert.strictEqual(
       newStakePool.totalLamports - stakePool.totalLamports,
-      117349568023722n
+      DEPOSIT_STAKE_LAMPORTS.staked + DEPOSIT_STAKE_LAMPORTS.unstaked
     );
   });
 

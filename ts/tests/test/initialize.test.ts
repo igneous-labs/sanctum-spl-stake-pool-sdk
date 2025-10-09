@@ -1,6 +1,6 @@
 import { describe, it, assert } from "vitest";
 import { readTestFixturesAccPk, readTestFixturesKeypair } from "./utils";
-import { initializeIx } from "@sanctumso/spl-stake-pool";
+import { initializeIx, initSyncEmbed } from "@sanctumso/spl-stake-pool";
 import {
   appendTransactionMessageInstructions,
   blockhash,
@@ -13,6 +13,8 @@ import {
   setTransactionMessageLifetimeUsingBlockhash,
   type IInstruction,
 } from "@solana/kit";
+
+initSyncEmbed();
 
 describe("initialize", async () => {
   // Requires a local validator running with test fixtures.

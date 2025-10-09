@@ -4,6 +4,7 @@ import {
   cleanupRemovedValidatorEntriesIxFromStakePool,
   deserStakePool,
   getStakePool,
+  initSyncEmbed,
 } from "@sanctumso/spl-stake-pool";
 import {
   appendTransactionMessageInstructions,
@@ -18,6 +19,8 @@ import {
   type Address,
   type IInstruction,
 } from "@solana/kit";
+
+initSyncEmbed();
 
 describe("cleanup-removed-validator-entries", async () => {
   it("cleanup-removed-validator-entries-sim-mainnet", async () => {

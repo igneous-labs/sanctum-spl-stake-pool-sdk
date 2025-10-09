@@ -1,5 +1,7 @@
-import { findWithdrawAuthPda } from "@sanctumso/spl-stake-pool";
+import { findWithdrawAuthPda, initSyncEmbed } from "@sanctumso/spl-stake-pool";
 import { describe, it, assert } from "vitest";
+
+initSyncEmbed();
 
 describe("pda", () => {
   it("find-withdrawauth-basic", () => {

@@ -7,8 +7,8 @@
     "ssts": "tsx scripts/set-spl-token-supply.ts"
   },
   "devDependencies": {
-    "@solana/kit": "^3",
-    "@solana-program/stake": "^0.3",
+    "@solana/kit": "^2",
+    "@solana-program/stake": "^0.2",
     "@types/node": "^22",
     "lossless-json": "^4",
     "tsx": "^4",

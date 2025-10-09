@@ -1,0 +1,7 @@
+{
+  "name": "postbuild",
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^22"
+  }
+}

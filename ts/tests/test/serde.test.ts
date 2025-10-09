@@ -7,11 +7,14 @@ import {
   deserValidatorList,
   getStakePool,
   getValidatorList,
+  initSyncEmbed,
   serStakePool,
   serValidatorList,
   setStakePool,
   setValidatorList,
 } from "@sanctumso/spl-stake-pool";
+
+initSyncEmbed();
 
 describe("serde", () => {
   it("de-stakepool-fixture-mut-then-ser", () => {

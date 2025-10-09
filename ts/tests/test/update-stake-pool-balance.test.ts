@@ -3,6 +3,7 @@ import { readTestFixturesAccPk, readTestFixturesJsonFile } from "./utils";
 import {
   deserStakePool,
   getStakePool,
+  initSyncEmbed,
   updateStakePoolBalanceIxFromStakePool,
 } from "@sanctumso/spl-stake-pool";
 import {
@@ -18,6 +19,8 @@ import {
   type Address,
   type IInstruction,
 } from "@solana/kit";
+
+initSyncEmbed();
 
 describe("update-stake-pool-balance", async () => {
   it("update-stake-pool-balance-sim-mainnet", async () => {

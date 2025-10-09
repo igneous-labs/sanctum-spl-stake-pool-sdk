@@ -4,6 +4,7 @@ import {
   deserStakePool,
   deserValidatorList,
   getStakePool,
+  initSyncEmbed,
   updateValidatorListBalanceIxFromStakePool,
 } from "@sanctumso/spl-stake-pool";
 import {
@@ -19,6 +20,8 @@ import {
   type Address,
   type IInstruction,
 } from "@solana/kit";
+
+initSyncEmbed();
 
 describe("update-validator-list-balance", async () => {
   it("update-validator-list-balance-sim-mainnet", async () => {

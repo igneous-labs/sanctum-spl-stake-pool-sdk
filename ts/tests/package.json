@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@sanctumso/spl-stake-pool": "file:../sdk/pkg",
-    "@solana/kit": "^2"
+    "@solana/kit": "^3"
   },
   "devDependencies": {
     "ts-node": "^10",

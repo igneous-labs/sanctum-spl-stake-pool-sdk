@@ -4,6 +4,7 @@ import {
   deserStakePool,
   getStakePool,
   increaseAdditionalValidatorStakeIxFromStakePool,
+  initSyncEmbed,
 } from "@sanctumso/spl-stake-pool";
 import {
   appendTransactionMessageInstructions,
@@ -18,6 +19,8 @@ import {
   type Address,
   type IInstruction,
 } from "@solana/kit";
+
+initSyncEmbed();
 
 describe("increase-additional-validator-stake", async () => {
   it("increase-additional-validator-stake-sim-mainnet", async () => {

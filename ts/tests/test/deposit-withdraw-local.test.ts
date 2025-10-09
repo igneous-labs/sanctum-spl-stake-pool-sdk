@@ -9,6 +9,7 @@ import {
   depositStakeIxFromStakePool,
   deserStakePool,
   getStakePool,
+  initSyncEmbed,
   quoteDepositSol,
   quoteDepositStake,
   quoteWithdrawSol,
@@ -31,6 +32,8 @@ import {
   signTransactionMessageWithSigners,
   type IInstruction,
 } from "@solana/kit";
+
+initSyncEmbed();
 
 /**
  * Requires a local validator running with test fixtures.

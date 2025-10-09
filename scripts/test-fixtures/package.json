@@ -1,0 +1,18 @@
+{
+  "name": "test-fixtures-utils",
+  "type": "module",
+  "private": "true",
+  "scripts": {
+    "osa": "tsx scripts/override-stake-acc.ts",
+    "ssts": "tsx scripts/set-spl-token-supply.ts"
+  },
+  "devDependencies": {
+    "@solana/kit": "^3",
+    "@solana-program/stake": "^0.3",
+    "@types/node": "^22",
+    "lossless-json": "^4",
+    "tsx": "^4",
+    "typescript": "^5"
+  },
+  "packageManager": "pnpm@10.6.2"
+}

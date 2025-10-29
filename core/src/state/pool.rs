@@ -1,3 +1,5 @@
+use core::ops::RangeInclusive;
+
 use borsh::{BorshDeserialize, BorshSerialize};
 use sanctum_u64_ratio::{Floor, Ratio};
 
@@ -169,7 +171,7 @@ impl StakePool {
 
     /// Must return `true` for the quote to be applicable
     #[inline]
-    pub fn is_updated_for_epoch(&self, current_epoch: u64) -> bool {
+    pub const fn is_updated_for_epoch(&self, current_epoch: u64) -> bool {
         self.last_update_epoch >= current_epoch
     }
 
@@ -299,7 +301,7 @@ impl StakePool {
 
     /// Performs the checks needed to be serviceable along with calculation logic
     #[inline]
-    pub fn quote_withdraw_sol(
+    pub const fn quote_withdraw_sol(
         &self,
         pool_tokens: u64,
         args: WithdrawSolQuoteArgs,
@@ -308,14 +310,35 @@ impl StakePool {
             return Err(SplStakePoolError::StakeListAndPoolOutOfDate);
         }
 
-        let quote = self
-            .quote_withdraw_sol_unchecked(pool_tokens)
-            .ok_or(SplStakePoolError::CalculationFailure)?;
+        let quote = match self.quote_withdraw_sol_unchecked(pool_tokens) {
+            None => return Err(SplStakePoolError::CalculationFailure),
+            Some(x) => x,
+        };
 
         if !reserve_has_sufficient_lamports(args.reserve_stake_lamports, quote.out_amount) {
             return Err(SplStakePoolError::SolWithdrawalTooLarge);
         }
         Ok(quote)
+    }
+
+    /// Performs the checks needed to be serviceable along with calculation logic
+    #[inline]
+    pub const fn quote_rev_withdraw_sol(
+        &self,
+        lamports: u64,
+        args: WithdrawSolQuoteArgs,
+    ) -> Result<WithdrawSolQuote, SplStakePoolError> {
+        if !self.is_updated_for_epoch(args.current_epoch) {
+            return Err(SplStakePoolError::StakeListAndPoolOutOfDate);
+        }
+        if !reserve_has_sufficient_lamports(args.reserve_stake_lamports, lamports) {
+            return Err(SplStakePoolError::SolWithdrawalTooLarge);
+        }
+
+        match self.quote_rev_withdraw_sol_unchecked(lamports) {
+            None => Err(SplStakePoolError::CalculationFailure),
+            Some(x) => Ok(x),
+        }
     }
 
     /// Returns `None` on arithmetic overflow.
@@ -324,14 +347,57 @@ impl StakePool {
     /// - pool has not been updated for the current epoch
     /// - the reserve stake does not have enough SOL to service the withdrawal
     #[inline]
-    pub fn quote_withdraw_sol_unchecked(&self, pool_tokens: u64) -> Option<WithdrawSolQuote> {
-        let after_sol_withdrawal_fee = self.sol_withdrawal_fee.to_fee_ceil()?.apply(pool_tokens)?;
-        let new_lamports = self.pool_tokens_to_lamports(after_sol_withdrawal_fee.rem())?;
-
+    pub const fn quote_withdraw_sol_unchecked(&self, pool_tokens: u64) -> Option<WithdrawSolQuote> {
+        let fee = match self.sol_withdrawal_fee.to_fee_ceil() {
+            None => return None,
+            Some(x) => x,
+        };
+        let after_sol_withdrawal_fee = match fee.apply(pool_tokens) {
+            None => return None,
+            Some(x) => x,
+        };
+        let out_lamports = match self.pool_tokens_to_lamports(after_sol_withdrawal_fee.rem()) {
+            None => return None,
+            Some(x) => x,
+        };
         Some(WithdrawSolQuote {
             in_amount: pool_tokens,
-            out_amount: new_lamports,
+            out_amount: out_lamports,
             manager_fee: after_sol_withdrawal_fee.fee(),
+        })
+    }
+
+    /// Reverse of [`Self::quote_withdraw_sol_unchecked`]: returns the smallest number
+    /// of pool_tokens required for the withdrawal given the desired amount of SOL
+    ///
+    /// Returns `None` on arithmetic overflow.
+    ///
+    /// NB: returned quote might not be applicable if:
+    /// - pool has not been updated for the current epoch
+    /// - the reserve stake does not have enough SOL to service the withdrawal
+    #[inline]
+    pub const fn quote_rev_withdraw_sol_unchecked(
+        &self,
+        lamports: u64,
+    ) -> Option<WithdrawSolQuote> {
+        let fee = match self.sol_withdrawal_fee.to_fee_ceil() {
+            None => return None,
+            Some(x) => x,
+        };
+        let after_sol_withdrawal_fee = match self.rev_pool_tokens_to_lamports(lamports) {
+            None => return None,
+            Some(x) => *x.start(),
+        };
+        let pool_tokens = match fee.reverse_from_rem(after_sol_withdrawal_fee) {
+            None => return None,
+            Some(x) => *x.start(),
+        };
+        // unchecked-arith: valid fee, so must be rem <= pool_tokens
+        let manager_fee = pool_tokens - after_sol_withdrawal_fee;
+        Some(WithdrawSolQuote {
+            in_amount: pool_tokens,
+            out_amount: lamports,
+            manager_fee,
         })
     }
 
@@ -431,6 +497,17 @@ impl StakePool {
             return Some(pool_tokens);
         }
         ratio.apply(pool_tokens)
+    }
+
+    /// Reverse of [`Self::pool_tokens_to_lamports`], which may yield a different result
+    /// from [`Self::lamports_to_pool_tokens`]
+    #[inline]
+    pub const fn rev_pool_tokens_to_lamports(&self, lamports: u64) -> Option<RangeInclusive<u64>> {
+        let ratio = self.lamports_over_supply();
+        if ratio.0.is_zero() {
+            return Some(lamports..=lamports);
+        }
+        ratio.reverse(lamports)
     }
 
     /// Returns None if self.sol_referral_fee > 100

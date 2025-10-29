@@ -178,9 +178,13 @@ impl StakeAccountLamports {
 }
 
 #[inline]
-pub fn reserve_has_sufficient_lamports(reserve_stake_lamports: u64, lamports_out: u64) -> bool {
-    reserve_stake_lamports
-        .checked_sub(lamports_out)
-        .map(|remaining| remaining > STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS)
-        .unwrap_or(false)
+pub const fn reserve_has_sufficient_lamports(
+    reserve_stake_lamports: u64,
+    lamports_out: u64,
+) -> bool {
+    let rem = match reserve_stake_lamports.checked_sub(lamports_out) {
+        None => return false,
+        Some(x) => x,
+    };
+    rem > STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS
 }

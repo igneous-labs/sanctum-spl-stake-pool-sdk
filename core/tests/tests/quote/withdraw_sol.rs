@@ -26,8 +26,8 @@ fn quote_rev_withdraw_sol_round_trip_x_gte_1(
         }) => {
             assert_eq!(out_lamports, lamports);
             // diff can happen due to Ratio::reverse_est
-            // but should always give more
-            // (quote overestimates)
+            // but quote should always give more out lamports
+            // for the same input pool tokens
             let quoted_lamports = sp
                 .quote_withdraw_sol_unchecked(pool_tokens)
                 .unwrap()
@@ -105,8 +105,8 @@ fn quote_rev_withdraw_sol_round_trip_x_lte_1(
                 .unwrap()
                 .in_amount;
             // diff can happen due to Ratio::reverse_est
-            // but should always give less
-            // (quote overestimates)
+            // but quote_rev should always give less input tokens
+            // for the same output lamports
             assert!(quoted_tokens <= tokens, "{quoted_tokens}, {tokens}");
             // despite difference, round-tripping should always give same reuslt
             let rt_out = sp

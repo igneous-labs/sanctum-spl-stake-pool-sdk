@@ -77,7 +77,7 @@ impl ValidatorListOwned {
         validators: Vec::new(),
     };
 
-    pub(crate) fn as_borrowed(&self) -> sanctum_spl_stake_pool_core::ValidatorList {
+    pub(crate) fn as_borrowed(&self) -> sanctum_spl_stake_pool_core::ValidatorList<'_> {
         sanctum_spl_stake_pool_core::ValidatorList {
             header: self.header,
             validators: &self.validators,

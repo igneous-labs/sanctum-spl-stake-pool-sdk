@@ -77,6 +77,17 @@ pub fn quote_withdraw_sol(
 }
 
 /// @throws on arithmetic overflow
+#[wasm_bindgen(js_name = quoteRevWithdrawSol)]
+pub fn quote_rev_withdraw_sol(
+    this: &StakePoolHandle,
+    lamports: u64,
+) -> Result<WithdrawSolQuote, JsError> {
+    this.0
+        .quote_rev_withdraw_sol_unchecked(lamports)
+        .ok_or_else(arithmetic_overflow_err)
+}
+
+/// @throws on arithmetic overflow
 #[wasm_bindgen(js_name = quoteWithdrawStake)]
 pub fn quote_withdraw_stake(
     this: &StakePoolHandle,

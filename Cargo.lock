@@ -503,9 +503,9 @@ checksum = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
 
 [[package]]
 name = "sanctum-fee-ratio"
-version = "2.0.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1c2233e749deeeb7d7fb6d4350c8941eb8ec996933eb30c4db50a186d789c6d"
+checksum = "0ecccdd19e355529a37c58376efff70673d748447b085c1e7d788ba51c2c0ddd"
 dependencies = [
  "sanctum-u64-ratio",
 ]
@@ -519,6 +519,7 @@ dependencies = [
  "data-encoding",
  "expect-test",
  "generic-array-struct",
+ "proptest",
  "sanctum-fee-ratio",
  "sanctum-u64-ratio",
  "serde",
@@ -530,9 +531,9 @@ dependencies = [
 
 [[package]]
 name = "sanctum-u64-ratio"
-version = "2.0.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e15bef5560539ed416f49fe8d5430b80699aa7279dcbe35e1f25800894c19b2"
+checksum = "399670a93a811c1eb179b3d0e2953ab93bef325333272c1ed40efd0732c31225"
 
 [[package]]
 name = "scopeguard"

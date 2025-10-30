@@ -7,3 +7,7 @@ pub fn ratio_gte_one() -> impl Strategy<Value = Ratio<u64, u64>> {
         .prop_flat_map(|n| (Just(n), 0..=n))
         .prop_map(|(n, d)| Ratio { n, d })
 }
+
+pub fn ratio_lte_one() -> impl Strategy<Value = Ratio<u64, u64>> {
+    ratio_gte_one().prop_map(|Ratio { n, d }| Ratio { n: d, d: n })
+}

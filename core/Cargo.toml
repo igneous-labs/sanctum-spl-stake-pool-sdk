@@ -25,4 +25,5 @@ wasm-bindgen = { workspace = true, optional = true }
 [dev-dependencies]
 data-encoding = { workspace = true, features = ["alloc"] }
 expect-test = { workspace = true }
+proptest = { workspace = true, features = ["std"] }
 serde_json = { workspace = true, features = ["alloc"] }

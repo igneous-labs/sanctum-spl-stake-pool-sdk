@@ -499,15 +499,16 @@ impl StakePool {
         ratio.apply(pool_tokens)
     }
 
-    /// Reverse of [`Self::pool_tokens_to_lamports`], which may yield a different result
-    /// from [`Self::lamports_to_pool_tokens`]
+    /// Given output `lamports`, return range of `pool_tokens`
+    /// that may have been fed into [`Self::pool_tokens_to_lamports`]
+    /// This may yield a different result from [`Self::lamports_to_pool_tokens`]
     #[inline]
     pub const fn rev_pool_tokens_to_lamports(&self, lamports: u64) -> Option<RangeInclusive<u64>> {
         let ratio = self.lamports_over_supply();
         if ratio.0.is_zero() {
             return Some(lamports..=lamports);
         }
-        ratio.reverse(lamports)
+        ratio.reverse_est(lamports)
     }
 
     /// Returns None if self.sol_referral_fee > 100

@@ -1,38 +1,11 @@
-use expect_test::expect;
-use generic_array_struct::generic_array_struct;
 use proptest::prelude::*;
 use sanctum_spl_stake_pool_core::{Fee, StakePool, WithdrawSolQuote};
 use sanctum_u64_ratio::Ratio;
 
-use crate::common::proptest_utils::{ratio_gte_one, ratio_lte_one};
-
-#[generic_array_struct(builder pub)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct PoolQuoteU64s<T> {
-    pub total_lamports: T,
-    pub pool_token_supply: T,
-}
-
-pub type PoolQuoteU64Ds = PoolQuoteU64s<u64>;
-
-#[test]
-fn quoting_with_zero_fee_should_not_error() {
-    let tokens = 126455611948;
-    let sp = StakePool {
-        total_lamports: 4072725611527686,
-        pool_token_supply: 3727925207812268,
-        stake_withdrawal_fee: Fee::ZERO,
-        ..Default::default()
-    };
-    expect![[r#"
-        WithdrawStakeQuote {
-            tokens_in: 126455611948,
-            lamports_staked: 138151647576,
-            fee_amount: 0,
-        }
-    "#]]
-    .assert_debug_eq(&sp.quote_withdraw_stake_unchecked(tokens).unwrap());
-}
+use crate::common::{
+    proptest_utils::{ratio_gte_one, ratio_lte_one},
+    quote::{NewPoolQuoteU64sBuilder, PoolQuoteU64Ds},
+};
 
 fn quote_rev_withdraw_sol_round_trip_x_gte_1(
     sol_withdrawal_fee: Fee,

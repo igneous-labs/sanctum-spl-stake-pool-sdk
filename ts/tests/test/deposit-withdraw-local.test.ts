@@ -1,5 +1,6 @@
 import { describe, it, assert } from "vitest";
 import {
+  fetchStakePool,
   readTestFixturesAccPk,
   readTestFixturesJsonFile,
   readTestFixturesKeypair,
@@ -61,15 +62,10 @@ describe("picosol-quote-sim-local", async () => {
 
     // Fetching the stake pool state for testing to enable multiple tests running on same validator
     const accountJson = readTestFixturesJsonFile("picosol-stake-pool");
-    const stakePoolInfoPre = await rpcClient
-      .getAccountInfo(address(accountJson.pubkey), {
-        encoding: "base64",
-      })
-      .send();
-    const stakePoolDataPre = new Uint8Array(
-      getBase64Encoder().encode(stakePoolInfoPre.value!.data[0])
+    const stakePoolHandlePre = await fetchStakePool(
+      rpcClient,
+      address(accountJson.pubkey)
     );
-    const stakePoolHandlePre = deserStakePool(stakePoolDataPre);
     const stakePoolPre = getStakePool(stakePoolHandlePre);
 
     const referralTokenBalanceBefore = BigInt(
@@ -139,15 +135,10 @@ describe("picosol-quote-sim-local", async () => {
     );
 
     // Refetching stake pool to get updated state
-    const latestStakePoolInfo = await rpcClient
-      .getAccountInfo(address(accountJson.pubkey), {
-        encoding: "base64",
-      })
-      .send();
-    const latestStakePoolData = new Uint8Array(
-      getBase64Encoder().encode(latestStakePoolInfo.value!.data[0])
+    const latestStakePoolHandle = await fetchStakePool(
+      rpcClient,
+      address(accountJson.pubkey)
     );
-    const latestStakePoolHandle = deserStakePool(latestStakePoolData);
     const latestStakePool = getStakePool(latestStakePoolHandle);
 
     assert.strictEqual(
@@ -190,15 +181,10 @@ describe("picosol-quote-sim-local", async () => {
 
     // Fetching the stake pool state for testing to enable multiple tests running on same validator
     const accountJson = readTestFixturesJsonFile("picosol-stake-pool");
-    const stakePoolInfo = await rpcClient
-      .getAccountInfo(address(accountJson.pubkey), {
-        encoding: "base64",
-      })
-      .send();
-    const stakePoolData = new Uint8Array(
-      getBase64Encoder().encode(stakePoolInfo.value!.data[0])
+    const stakePoolHandle = await fetchStakePool(
+      rpcClient,
+      address(accountJson.pubkey)
     );
-    const stakePoolHandle = deserStakePool(stakePoolData);
     const stakePool = getStakePool(stakePoolHandle);
 
     let quote = quoteDepositStake(stakePoolHandle, DEPOSIT_STAKE_LAMPORTS);
@@ -266,15 +252,10 @@ describe("picosol-quote-sim-local", async () => {
     );
 
     // Refetching stake pool to get updated state
-    const changedStakePool = await rpcClient
-      .getAccountInfo(address(accountJson.pubkey), {
-        encoding: "base64",
-      })
-      .send();
-    const newStakePoolData = new Uint8Array(
-      getBase64Encoder().encode(changedStakePool.value!.data[0])
+    const newStakePoolHandle = await fetchStakePool(
+      rpcClient,
+      address(accountJson.pubkey)
     );
-    const newStakePoolHandle = deserStakePool(newStakePoolData);
     const newStakePool = getStakePool(newStakePoolHandle);
 
     assert.strictEqual(
@@ -318,15 +299,10 @@ describe("picosol-quote-sim-local", async () => {
 
     // Fetching the stake pool state for testing to enable multiple tests running on same validator
     const accountJson = readTestFixturesJsonFile("picosol-stake-pool");
-    const stakePoolInfo = await rpcClient
-      .getAccountInfo(address(accountJson.pubkey), {
-        encoding: "base64",
-      })
-      .send();
-    const stakePoolData = new Uint8Array(
-      getBase64Encoder().encode(stakePoolInfo.value!.data[0])
+    const stakePoolHandle = await fetchStakePool(
+      rpcClient,
+      address(accountJson.pubkey)
     );
-    const stakePoolHandle = deserStakePool(stakePoolData);
     const stakePool = getStakePool(stakePoolHandle);
 
     const signerTokenBalanceBefore = BigInt(
@@ -388,15 +364,10 @@ describe("picosol-quote-sim-local", async () => {
     );
 
     // Refetching stake pool to get updated state
-    const changedStakePool = await rpcClient
-      .getAccountInfo(address(accountJson.pubkey), {
-        encoding: "base64",
-      })
-      .send();
-    const newStakePoolData = new Uint8Array(
-      getBase64Encoder().encode(changedStakePool.value!.data[0])
+    const newStakePoolHandle = await fetchStakePool(
+      rpcClient,
+      address(accountJson.pubkey)
     );
-    const newStakePoolHandle = deserStakePool(newStakePoolData);
     const newStakePool = getStakePool(newStakePoolHandle);
 
     const signerInfoAfter = await rpcClient
@@ -439,15 +410,10 @@ describe("picosol-quote-sim-local", async () => {
 
     // Fetching the stake pool state for testing to enable multiple tests running on same validator
     const accountJson = readTestFixturesJsonFile("picosol-stake-pool");
-    const stakePoolInfo = await rpcClient
-      .getAccountInfo(address(accountJson.pubkey), {
-        encoding: "base64",
-      })
-      .send();
-    const stakePoolData = new Uint8Array(
-      getBase64Encoder().encode(stakePoolInfo.value!.data[0])
+    const stakePoolHandle = await fetchStakePool(
+      rpcClient,
+      address(accountJson.pubkey)
     );
-    const stakePoolHandle = deserStakePool(stakePoolData);
     const stakePool = getStakePool(stakePoolHandle);
 
     const signerTokenBalanceBefore = BigInt(
@@ -513,15 +479,10 @@ describe("picosol-quote-sim-local", async () => {
     let delegationStake = getU64Codec().decode(encoded.slice(156, 164));
 
     // Refetching stake pool to get updated state
-    const changedStakePool = await rpcClient
-      .getAccountInfo(address(accountJson.pubkey), {
-        encoding: "base64",
-      })
-      .send();
-    const newStakePoolData = new Uint8Array(
-      getBase64Encoder().encode(changedStakePool.value!.data[0])
+    const newStakePoolHandle = await fetchStakePool(
+      rpcClient,
+      address(accountJson.pubkey)
     );
-    const newStakePoolHandle = deserStakePool(newStakePoolData);
     const newStakePool = getStakePool(newStakePoolHandle);
 
     const signerTokenBalanceAfter = BigInt(

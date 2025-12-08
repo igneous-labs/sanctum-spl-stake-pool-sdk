@@ -1,5 +1,9 @@
 import { describe, it, assert } from "vitest";
-import { readTestFixturesAccPk, readTestFixturesJsonFile } from "./utils";
+import {
+  fetchStakePool,
+  readTestFixturesAccPk,
+  readTestFixturesJsonFile,
+} from "./utils";
 import {
   deserStakePool,
   getStakePool,
@@ -28,14 +32,7 @@ describe("update-stake-pool-balance", async () => {
     const rpcClient = createSolanaRpc("https://api.mainnet-beta.solana.com");
     const poolPk = readTestFixturesAccPk("jupsol-stake-pool");
 
-    const stakePoolInfo = await rpcClient
-      .getAccountInfo(poolPk, {
-        encoding: "base64",
-      })
-      .send();
-    const stakePoolHandle = deserStakePool(
-      new Uint8Array(getBase64Encoder().encode(stakePoolInfo.value!.data[0]))
-    );
+    const stakePoolHandle = await fetchStakePool(rpcClient, poolPk);
 
     let ix = updateStakePoolBalanceIxFromStakePool(
       {

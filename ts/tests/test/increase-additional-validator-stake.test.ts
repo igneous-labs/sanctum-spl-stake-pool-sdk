@@ -80,6 +80,7 @@ describe("increase-additional-validator-stake", async () => {
     // we're testing against mainnet so simulation might fail with InsufficientFunds
     // if jupsol reserves does not have enough SOL to delegate
     assert.notEqual(null, simulation);
+    console.log(simulation.value.logs);
     //assert.strictEqual(simulation.value.err, null);
   });
 });

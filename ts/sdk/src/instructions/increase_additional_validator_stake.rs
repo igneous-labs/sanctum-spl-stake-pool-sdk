@@ -109,8 +109,8 @@ impl IncreaseAdditionalValidatorStakeIxKeysHandle {
     ) -> [AccountMeta; stake_pool_sdk::INCREASE_ADDITIONAL_VALIDATOR_STAKE_IX_ACCS_LEN] {
         keys_signer_writer_to_account_metas(
             &self.0.as_borrowed().0,
-            &stake_pool_sdk::INCREASE_ADDITIONAL_VALIDATOR_STAKE_IX_PREFIX_IS_SIGNER.0,
-            &stake_pool_sdk::INCREASE_ADDITIONAL_VALIDATOR_STAKE_IX_PREFIX_IS_WRITER.0,
+            &stake_pool_sdk::INCREASE_ADDITIONAL_VALIDATOR_STAKE_IX_IS_SIGNER.0,
+            &stake_pool_sdk::INCREASE_ADDITIONAL_VALIDATOR_STAKE_IX_IS_WRITER.0,
         )
     }
 }

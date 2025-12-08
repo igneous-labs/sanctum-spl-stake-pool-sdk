@@ -1,4 +1,5 @@
 mod cleanup_removed_validator_entries;
+mod decrease_additional_validator_stake;
 mod deposit_sol;
 mod deposit_stake;
 mod increase_additional_validator_stake;
@@ -9,6 +10,7 @@ mod withdraw_sol;
 mod withdraw_stake;
 
 pub use cleanup_removed_validator_entries::*;
+pub use decrease_additional_validator_stake::*;
 pub use deposit_sol::*;
 pub use deposit_stake::*;
 pub use increase_additional_validator_stake::*;

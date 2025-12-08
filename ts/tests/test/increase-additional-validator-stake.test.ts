@@ -1,11 +1,12 @@
 import { describe, it, assert } from "vitest";
-import { fetchStakePool, readTestFixturesAccPk } from "./utils";
+import { fetchStakePool, readTestFixturesJsonFile } from "./utils";
 import {
   getStakePool,
   increaseAdditionalValidatorStakeIxFromStakePool,
   initSyncEmbed,
 } from "@sanctumso/spl-stake-pool";
 import {
+  address,
   appendTransactionMessageInstructions,
   blockhash,
   compileTransaction,
@@ -24,16 +25,18 @@ initSyncEmbed();
 describe("increase-additional-validator-stake", async () => {
   it("increase-additional-validator-stake-sim-mainnet", async () => {
     const rpcClient = createSolanaRpc("https://api.mainnet-beta.solana.com");
-    const poolPk = readTestFixturesAccPk("jupsol-stake-pool");
+    const accountJson = readTestFixturesJsonFile("jupsol-stake-pool");
+    const poolPk = address(accountJson.pubkey);
+    const program = address(accountJson.account.owner);
 
     const stakePoolHandle = await fetchStakePool(rpcClient, poolPk);
     const stakePool = getStakePool(stakePoolHandle);
 
     let ix = increaseAdditionalValidatorStakeIxFromStakePool(
       {
-        program: "SPMBzsVUuoHA4Jm6KunbsotaahvVikZs1JyTW6iJvbn",
+        program,
+        stakePool: poolPk,
         voteAccount: "CatzoSMUkTRidT5DwBxAC2pEtnwMBTpkCepHkFgZDiqb",
-        stakePool: "8VpRhuxa7sUUepdY3kQiTmX9rS5vx4WgaXiAnXq4KCtr",
       },
       stakePoolHandle,
       {

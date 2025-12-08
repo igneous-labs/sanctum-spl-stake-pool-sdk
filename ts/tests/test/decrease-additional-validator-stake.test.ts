@@ -2,7 +2,7 @@ import { describe, it, assert } from "vitest";
 import { fetchStakePool, readTestFixturesJsonFile } from "./utils";
 import {
   getStakePool,
-  increaseAdditionalValidatorStakeIxFromStakePool,
+  decreaseAdditionalValidatorStakeIxFromStakePool,
   initSyncEmbed,
 } from "@sanctumso/spl-stake-pool";
 import {
@@ -22,8 +22,8 @@ import {
 
 initSyncEmbed();
 
-describe("increase-additional-validator-stake", async () => {
-  it("increase-additional-validator-stake-sim-mainnet", async () => {
+describe("decrease-additional-validator-stake", async () => {
+  it("decrease-additional-validator-stake-sim-mainnet", async () => {
     const rpcClient = createSolanaRpc("https://api.mainnet-beta.solana.com");
     const accountJson = readTestFixturesJsonFile("jupsol-stake-pool");
     const poolPk = address(accountJson.pubkey);
@@ -32,7 +32,7 @@ describe("increase-additional-validator-stake", async () => {
     const stakePoolHandle = await fetchStakePool(rpcClient, poolPk);
     const stakePool = getStakePool(stakePoolHandle);
 
-    let ix = increaseAdditionalValidatorStakeIxFromStakePool(
+    let ix = decreaseAdditionalValidatorStakeIxFromStakePool(
       {
         program,
         stakePool: poolPk,

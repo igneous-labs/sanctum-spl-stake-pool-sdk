@@ -1,9 +1,16 @@
 import {
+  deserStakePool,
+  type StakePoolHandle,
+} from "@sanctumso/spl-stake-pool";
+import {
   address,
   createKeyPairSignerFromBytes,
   getAddressDecoder,
+  getBase64Encoder,
   type Address,
   type KeyPairSigner,
+  type Rpc,
+  type SolanaRpcApi,
 } from "@solana/kit";
 import { readFileSync } from "fs";
 
@@ -36,4 +43,18 @@ export function readTestFixturesKeypair(
 export function randPubkey(): Address {
   const b = crypto.getRandomValues(new Uint8Array(32));
   return getAddressDecoder().decode(b);
+}
+
+export async function fetchStakePool(
+  rpc: Rpc<SolanaRpcApi>,
+  addr: Address
+): Promise<StakePoolHandle> {
+  const stakePoolInfo = await rpc
+    .getAccountInfo(addr, {
+      encoding: "base64",
+    })
+    .send();
+  return deserStakePool(
+    new Uint8Array(getBase64Encoder().encode(stakePoolInfo.value!.data[0]))
+  );
 }

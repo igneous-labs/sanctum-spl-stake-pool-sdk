@@ -1,8 +1,6 @@
 use std::num::NonZeroU32;
 
-use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
-use tsify_next::Tsify;
 use wasm_bindgen::{prelude::wasm_bindgen, JsError};
 
 use sanctum_spl_stake_pool_core::{self as stake_pool_sdk};
@@ -12,47 +10,22 @@ use crate::{
     find_ephemeral_stake_account_pda_internal, find_transient_stake_account_pda_internal,
     find_validator_stake_account_pda_internal, find_withdraw_auth_pda_internal,
     utils::{keys_signer_writer_to_account_metas, AccountMeta},
-    StakePoolHandle, B58PK,
+    AdditionalValidatorStakeIxArgs, AdditionalValidatorStakeIxUserAddrs, Instruction,
+    StakePoolHandle,
 };
-
-use super::Instruction;
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Tsify)]
-#[tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)]
-#[serde(rename_all = "camelCase")]
-pub struct IncreaseAdditionalValidatorStakeIxArgs {
-    pub lamports: u64,
-    pub transient_stake_seed: u64,
-    pub validator_stake_seed: Option<u32>,
-}
-
-#[wasm_bindgen]
-#[derive(Default)]
-pub struct IncreaseAdditionalValidatorStakeIxKeysHandle(
-    stake_pool_sdk::IncreaseAdditionalValidatorStakeIxKeysOwned,
-);
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Tsify)]
-#[tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)]
-#[serde(rename_all = "camelCase")]
-pub struct IncreaseAdditionalValidatorStakeIxUserAddrs {
-    pub program: B58PK,
-    pub vote_account: B58PK,
-    pub stake_pool: B58PK,
-}
 
 /// @throws if
 /// - invalid pubkey was provided
 /// - PDAs can't be found
 #[wasm_bindgen(js_name = increaseAdditionalValidatorStakeIxFromStakePool)]
 pub fn increase_additional_validator_stake_ix_from_stake_pool(
-    IncreaseAdditionalValidatorStakeIxUserAddrs {
+    AdditionalValidatorStakeIxUserAddrs {
         program,
         vote_account,
         stake_pool,
-    }: IncreaseAdditionalValidatorStakeIxUserAddrs,
+    }: AdditionalValidatorStakeIxUserAddrs,
     stake_pool_handle: &StakePoolHandle,
-    args: IncreaseAdditionalValidatorStakeIxArgs,
+    args: AdditionalValidatorStakeIxArgs,
 ) -> Result<Instruction, JsError> {
     let withdraw_authority = find_withdraw_auth_pda_internal(&program.0, &stake_pool.0)
         .ok_or_else(no_valid_pda)?
@@ -103,14 +76,20 @@ pub fn increase_additional_validator_stake_ix_from_stake_pool(
     })
 }
 
+#[wasm_bindgen]
+#[derive(Default)]
+pub struct IncreaseAdditionalValidatorStakeIxKeysHandle(
+    stake_pool_sdk::IncreaseAdditionalValidatorStakeIxKeysOwned,
+);
+
 impl IncreaseAdditionalValidatorStakeIxKeysHandle {
     fn to_account_metas(
         &self,
     ) -> [AccountMeta; stake_pool_sdk::INCREASE_ADDITIONAL_VALIDATOR_STAKE_IX_ACCS_LEN] {
         keys_signer_writer_to_account_metas(
             &self.0.as_borrowed().0,
-            &stake_pool_sdk::INCREASE_ADDITIONAL_VALIDATOR_STAKE_IX_PREFIX_IS_SIGNER.0,
-            &stake_pool_sdk::INCREASE_ADDITIONAL_VALIDATOR_STAKE_IX_PREFIX_IS_WRITER.0,
+            &stake_pool_sdk::INCREASE_ADDITIONAL_VALIDATOR_STAKE_IX_IS_SIGNER.0,
+            &stake_pool_sdk::INCREASE_ADDITIONAL_VALIDATOR_STAKE_IX_IS_WRITER.0,
         )
     }
 }

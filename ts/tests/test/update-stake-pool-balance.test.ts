@@ -13,6 +13,7 @@ import {
   createSolanaRpc,
   createTransactionMessage,
   getBase64EncodedWireTransaction,
+  getBase64Encoder,
   pipe,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
@@ -24,11 +25,17 @@ initSyncEmbed();
 
 describe("update-stake-pool-balance", async () => {
   it("update-stake-pool-balance-sim-mainnet", async () => {
-    const accountJson = readTestFixturesJsonFile("jupsol-stake-pool");
-    const accountData = Buffer.from(accountJson.account.data[0], "base64");
-    const bytes = new Uint8Array(accountData);
-    const stakePoolHandle = deserStakePool(bytes);
-    const stakePool = getStakePool(stakePoolHandle);
+    const rpcClient = createSolanaRpc("https://api.mainnet-beta.solana.com");
+    const poolPk = readTestFixturesAccPk("jupsol-stake-pool");
+
+    const stakePoolInfo = await rpcClient
+      .getAccountInfo(poolPk, {
+        encoding: "base64",
+      })
+      .send();
+    const stakePoolHandle = deserStakePool(
+      new Uint8Array(getBase64Encoder().encode(stakePoolInfo.value!.data[0]))
+    );
 
     let ix = updateStakePoolBalanceIxFromStakePool(
       {
@@ -38,8 +45,6 @@ describe("update-stake-pool-balance", async () => {
       stakePoolHandle
     ) as unknown as IInstruction;
 
-    let rpcClient = createSolanaRpc("https://api.mainnet-beta.solana.com");
-
     const simulatedTx = pipe(
       createTransactionMessage({
         version: 0,
@@ -47,7 +52,7 @@ describe("update-stake-pool-balance", async () => {
       (txm) => appendTransactionMessageInstructions([ix], txm),
       (txm) =>
         setTransactionMessageFeePayer(
-          stakePool.manager as Address<string>,
+          getStakePool(stakePoolHandle).manager as Address<string>,
           txm
         ),
       (txm) =>
@@ -68,6 +73,6 @@ describe("update-stake-pool-balance", async () => {
         replaceRecentBlockhash: true,
       })
       .send();
-    assert.strictEqual(simulation.value.err, null);
+    assert.strictEqual(simulation.value.err, null, `${simulation.value.logs}`);
   });
 });

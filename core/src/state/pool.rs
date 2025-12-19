@@ -403,7 +403,7 @@ impl StakePool {
 
     /// Performs the checks needed to be serviceable along with calculation logic
     #[inline]
-    pub fn quote_withdraw_stake(
+    pub const fn quote_withdraw_stake(
         &self,
         pool_tokens: u64,
         args: WithdrawStakeQuoteArgs,
@@ -411,9 +411,26 @@ impl StakePool {
         if !self.is_updated_for_epoch(args.current_epoch) {
             return Err(SplStakePoolError::StakeListAndPoolOutOfDate);
         }
+        match self.quote_withdraw_stake_unchecked(pool_tokens) {
+            Some(x) => Ok(x),
+            None => Err(SplStakePoolError::CalculationFailure),
+        }
+    }
 
-        self.quote_withdraw_stake_unchecked(pool_tokens)
-            .ok_or(SplStakePoolError::CalculationFailure)
+    /// Performs the checks needed to be serviceable along with calculation logic
+    #[inline]
+    pub const fn quote_rev_withdraw_stake(
+        &self,
+        lamports_staked: u64,
+        args: WithdrawStakeQuoteArgs,
+    ) -> Result<WithdrawStakeQuote, SplStakePoolError> {
+        if !self.is_updated_for_epoch(args.current_epoch) {
+            return Err(SplStakePoolError::StakeListAndPoolOutOfDate);
+        }
+        match self.quote_rev_withdraw_stake_unchecked(lamports_staked) {
+            None => Err(SplStakePoolError::CalculationFailure),
+            Some(x) => Ok(x),
+        }
     }
 
     /// Returns `None` on arithmetic overflow.
@@ -424,16 +441,60 @@ impl StakePool {
     /// - there are insufficient lamports in the stake account to cover the minimum leftover needed
     /// - the stake_to_receive account is not a rent exempt uninitialized stake account
     #[inline]
-    pub fn quote_withdraw_stake_unchecked(&self, pool_tokens: u64) -> Option<WithdrawStakeQuote> {
-        let after_stake_withdrawal_fee = self
-            .stake_withdrawal_fee
-            .to_fee_ceil()?
-            .apply(pool_tokens)?;
+    pub const fn quote_withdraw_stake_unchecked(
+        &self,
+        pool_tokens: u64,
+    ) -> Option<WithdrawStakeQuote> {
+        let fee = match self.stake_withdrawal_fee.to_fee_ceil() {
+            None => return None,
+            Some(x) => x,
+        };
+        let after_stake_withdrawal_fee = match fee.apply(pool_tokens) {
+            None => return None,
+            Some(x) => x,
+        };
+        let lamports_staked = match self.pool_tokens_to_lamports(after_stake_withdrawal_fee.rem()) {
+            None => return None,
+            Some(x) => x,
+        };
 
         Some(WithdrawStakeQuote {
             tokens_in: pool_tokens,
-            lamports_staked: self.pool_tokens_to_lamports(after_stake_withdrawal_fee.rem())?,
+            lamports_staked,
             fee_amount: after_stake_withdrawal_fee.fee(),
+        })
+    }
+
+    /// Reverse of [`Self::quote_withdraw_stake_unchecked`]: returns the smallest number
+    /// of pool_tokens required for the withdrawal given the desired amount of active stake withdrawn
+    ///
+    /// Returns `None` on arithmetic overflow.
+    ///
+    /// NB: returned quote might not be applicable. Same conditions as [`Self::quote_withdraw_stake_unchecked`]
+    #[inline]
+    pub const fn quote_rev_withdraw_stake_unchecked(
+        &self,
+        lamports_staked: u64,
+    ) -> Option<WithdrawStakeQuote> {
+        let fee = match self.stake_withdrawal_fee.to_fee_ceil() {
+            None => return None,
+            Some(x) => x,
+        };
+        let after_stake_withdrawal_fee = match self.rev_pool_tokens_to_lamports(lamports_staked) {
+            None => return None,
+            Some(x) => *x.start(),
+        };
+        let pool_tokens = match fee.reverse_from_rem(after_stake_withdrawal_fee) {
+            None => return None,
+            Some(x) => *x.start(),
+        };
+        // unchecked-arith: valid fee, so must be rem <= pool_tokens
+        let fee_amount = pool_tokens - after_stake_withdrawal_fee;
+
+        Some(WithdrawStakeQuote {
+            tokens_in: pool_tokens,
+            lamports_staked,
+            fee_amount,
         })
     }
 }

@@ -44,7 +44,7 @@ fn quote_rev_withdraw_sol_round_trip_x_gte_1(
             assert_eq!(rt_in, pool_tokens);
         }
         // since x-rate >= 1, quote_rev's
-        // input (lamports) > output (tokens),
+        // input (tokens) > output (lamports),
         // so if quote_rev overflows then
         // quote must also overflow for the same amount
         // only if fees are zero.

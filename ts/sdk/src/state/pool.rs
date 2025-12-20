@@ -98,6 +98,17 @@ pub fn quote_withdraw_stake(
         .ok_or_else(arithmetic_overflow_err)
 }
 
+/// @throws on arithmetic overflow
+#[wasm_bindgen(js_name = quoteRevWithdrawStake)]
+pub fn quote_rev_withdraw_stake(
+    this: &StakePoolHandle,
+    lamports_staked: u64,
+) -> Result<WithdrawStakeQuote, JsError> {
+    this.0
+        .quote_rev_withdraw_stake_unchecked(lamports_staked)
+        .ok_or_else(arithmetic_overflow_err)
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)]
 #[serde(rename_all = "camelCase")]

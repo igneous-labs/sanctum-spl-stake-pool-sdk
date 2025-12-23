@@ -194,12 +194,15 @@ impl StakePool {
     pub fn quote_deposit_sol(
         &self,
         lamports: u64,
-        args: DepositSolQuoteArgs,
+        DepositSolQuoteArgs {
+            depositor,
+            current_epoch,
+        }: &DepositSolQuoteArgs,
     ) -> Result<DepositSolQuote, SplStakePoolError> {
-        if !self.can_pk_deposit(&args.depositor) {
+        if !self.can_pk_deposit(depositor) {
             return Err(SplStakePoolError::InvalidSolDepositAuthority);
         }
-        if !self.is_updated_for_epoch(args.current_epoch) {
+        if !self.is_updated_for_epoch(*current_epoch) {
             return Err(SplStakePoolError::StakeListAndPoolOutOfDate);
         }
         self.quote_deposit_sol_unchecked(lamports)
@@ -238,17 +241,20 @@ impl StakePool {
             validator_status,
             validator_vote,
             current_epoch,
+            depositor,
         }: &DepositStakeQuoteArgs,
     ) -> Result<DepositStakeQuote, SplStakePoolError> {
         if !self.is_updated_for_epoch(*current_epoch) {
             return Err(SplStakePoolError::StakeListAndPoolOutOfDate);
         }
-
         if !self.can_deposit_stake_of(validator_vote) {
             return Err(SplStakePoolError::IncorrectDepositVoteAddress);
         }
         if *validator_status != StakeStatus::Active {
             return Err(SplStakePoolError::InvalidState);
+        }
+        if depositor.is_some_and(|d| *d != self.stake_deposit_authority) {
+            return Err(SplStakePoolError::InvalidStakeDepositAuthority);
         }
 
         self.quote_deposit_stake_unchecked(stake_account_lamports)
@@ -301,13 +307,23 @@ impl StakePool {
 
     /// Performs the checks needed to be serviceable along with calculation logic
     #[inline]
-    pub const fn quote_withdraw_sol(
+    pub fn quote_withdraw_sol(
         &self,
         pool_tokens: u64,
-        args: WithdrawSolQuoteArgs,
+        WithdrawSolQuoteArgs {
+            withdrawer,
+            reserve_stake_lamports,
+            current_epoch,
+        }: &WithdrawSolQuoteArgs,
     ) -> Result<WithdrawSolQuote, SplStakePoolError> {
-        if !self.is_updated_for_epoch(args.current_epoch) {
+        if !self.is_updated_for_epoch(*current_epoch) {
             return Err(SplStakePoolError::StakeListAndPoolOutOfDate);
+        }
+        if self
+            .sol_withdraw_authority
+            .is_some_and(|w| w != **withdrawer)
+        {
+            return Err(SplStakePoolError::InvalidSolWithdrawAuthority);
         }
 
         let quote = match self.quote_withdraw_sol_unchecked(pool_tokens) {
@@ -315,7 +331,7 @@ impl StakePool {
             Some(x) => x,
         };
 
-        if !reserve_has_sufficient_lamports(args.reserve_stake_lamports, quote.out_amount) {
+        if !reserve_has_sufficient_lamports(*reserve_stake_lamports, quote.out_amount) {
             return Err(SplStakePoolError::SolWithdrawalTooLarge);
         }
         Ok(quote)
@@ -323,16 +339,26 @@ impl StakePool {
 
     /// Performs the checks needed to be serviceable along with calculation logic
     #[inline]
-    pub const fn quote_rev_withdraw_sol(
+    pub fn quote_rev_withdraw_sol(
         &self,
         lamports: u64,
-        args: WithdrawSolQuoteArgs,
+        WithdrawSolQuoteArgs {
+            withdrawer,
+            reserve_stake_lamports,
+            current_epoch,
+        }: &WithdrawSolQuoteArgs,
     ) -> Result<WithdrawSolQuote, SplStakePoolError> {
-        if !self.is_updated_for_epoch(args.current_epoch) {
+        if !self.is_updated_for_epoch(*current_epoch) {
             return Err(SplStakePoolError::StakeListAndPoolOutOfDate);
         }
-        if !reserve_has_sufficient_lamports(args.reserve_stake_lamports, lamports) {
+        if !reserve_has_sufficient_lamports(*reserve_stake_lamports, lamports) {
             return Err(SplStakePoolError::SolWithdrawalTooLarge);
+        }
+        if self
+            .sol_withdraw_authority
+            .is_some_and(|w| w != **withdrawer)
+        {
+            return Err(SplStakePoolError::InvalidSolWithdrawAuthority);
         }
 
         match self.quote_rev_withdraw_sol_unchecked(lamports) {
@@ -406,9 +432,9 @@ impl StakePool {
     pub const fn quote_withdraw_stake(
         &self,
         pool_tokens: u64,
-        args: WithdrawStakeQuoteArgs,
+        WithdrawStakeQuoteArgs { current_epoch }: WithdrawStakeQuoteArgs,
     ) -> Result<WithdrawStakeQuote, SplStakePoolError> {
-        if !self.is_updated_for_epoch(args.current_epoch) {
+        if !self.is_updated_for_epoch(current_epoch) {
             return Err(SplStakePoolError::StakeListAndPoolOutOfDate);
         }
         match self.quote_withdraw_stake_unchecked(pool_tokens) {
@@ -422,9 +448,9 @@ impl StakePool {
     pub const fn quote_rev_withdraw_stake(
         &self,
         lamports_staked: u64,
-        args: WithdrawStakeQuoteArgs,
+        WithdrawStakeQuoteArgs { current_epoch }: WithdrawStakeQuoteArgs,
     ) -> Result<WithdrawStakeQuote, SplStakePoolError> {
-        if !self.is_updated_for_epoch(args.current_epoch) {
+        if !self.is_updated_for_epoch(current_epoch) {
             return Err(SplStakePoolError::StakeListAndPoolOutOfDate);
         }
         match self.quote_rev_withdraw_stake_unchecked(lamports_staked) {

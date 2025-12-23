@@ -8,6 +8,7 @@ pub enum SplStakePoolError {
     IncorrectDepositVoteAddress,
     IncorrectWithdrawVoteAddress,
     InvalidSolDepositAuthority,
+    InvalidSolWithdrawAuthority,
     InvalidStakeDepositAuthority,
     InvalidState,
     SolWithdrawalTooLarge,

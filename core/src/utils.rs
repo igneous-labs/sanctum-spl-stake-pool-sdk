@@ -2,9 +2,9 @@ use borsh::{BorshDeserialize, BorshSerialize};
 
 use crate::{StakeStatus, ValidatorStakeInfo, STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, BorshSerialize, BorshDeserialize)]
-pub struct DepositSolQuoteArgs {
-    pub depositor: [u8; 32],
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct DepositSolQuoteArgs<'a> {
+    pub depositor: &'a [u8; 32],
     pub current_epoch: u64,
 }
 
@@ -39,15 +39,34 @@ pub struct DepositStakeQuoteArgs<'a> {
     pub validator_status: StakeStatus,
     pub validator_vote: &'a [u8; 32],
     pub current_epoch: u64,
+
+    /// Set to None if pool is permissionless
+    /// (stake_deposit_auth == default PDA)
+    pub depositor: Option<&'a [u8; 32]>,
 }
 
 impl<'a> DepositStakeQuoteArgs<'a> {
     #[inline]
-    pub fn new(vsi: &'a ValidatorStakeInfo, current_epoch: u64) -> Self {
+    pub fn permissionless(vsi: &'a ValidatorStakeInfo, current_epoch: u64) -> Self {
         Self {
             validator_status: vsi.status(),
             validator_vote: vsi.vote_account_address(),
             current_epoch,
+            depositor: None,
+        }
+    }
+
+    #[inline]
+    pub fn permissioned(
+        vsi: &'a ValidatorStakeInfo,
+        current_epoch: u64,
+        depositor: &'a [u8; 32],
+    ) -> Self {
+        Self {
+            validator_status: vsi.status(),
+            validator_vote: vsi.vote_account_address(),
+            current_epoch,
+            depositor: Some(depositor),
         }
     }
 }
@@ -83,18 +102,9 @@ impl DepositStakeQuote {
     }
 }
 
-#[derive(Debug, Clone, Copy, BorshSerialize, BorshDeserialize)]
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "camelCase")
-)]
-#[cfg_attr(
-    feature = "wasm",
-    derive(tsify_next::Tsify),
-    tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
-)]
-pub struct WithdrawSolQuoteArgs {
+#[derive(Debug, Clone, Copy)]
+pub struct WithdrawSolQuoteArgs<'a> {
+    pub withdrawer: &'a [u8; 32],
     pub reserve_stake_lamports: u64,
     pub current_epoch: u64,
 }

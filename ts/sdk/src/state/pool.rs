@@ -66,6 +66,18 @@ pub fn quote_deposit_stake(
 }
 
 /// @throws on arithmetic overflow
+#[wasm_bindgen(js_name = quoteRevDepositStake)]
+pub fn quote_rev_deposit_stake(
+    this: &StakePoolHandle,
+    tokens_out: u64,
+    unstaked_lamports: u64,
+) -> Result<DepositStakeQuote, JsError> {
+    this.0
+        .quote_rev_deposit_stake_unchecked(tokens_out, unstaked_lamports)
+        .ok_or_else(arithmetic_overflow_err)
+}
+
+/// @throws on arithmetic overflow
 #[wasm_bindgen(js_name = quoteWithdrawSol)]
 pub fn quote_withdraw_sol(
     this: &StakePoolHandle,

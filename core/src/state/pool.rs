@@ -307,6 +307,97 @@ impl StakePool {
 
     /// Performs the checks needed to be serviceable along with calculation logic
     #[inline]
+    pub fn quote_rev_deposit_stake(
+        &self,
+        tokens_out: u64,
+        unstaked_lamports: u64,
+        DepositStakeQuoteArgs {
+            validator_status,
+            validator_vote,
+            current_epoch,
+            depositor,
+        }: &DepositStakeQuoteArgs,
+    ) -> Result<DepositStakeQuote, SplStakePoolError> {
+        if !self.is_updated_for_epoch(*current_epoch) {
+            return Err(SplStakePoolError::StakeListAndPoolOutOfDate);
+        }
+        if !self.can_deposit_stake_of(validator_vote) {
+            return Err(SplStakePoolError::IncorrectDepositVoteAddress);
+        }
+        if *validator_status != StakeStatus::Active {
+            return Err(SplStakePoolError::InvalidState);
+        }
+        if depositor.is_some_and(|d| *d != self.stake_deposit_authority) {
+            return Err(SplStakePoolError::InvalidStakeDepositAuthority);
+        }
+
+        self.quote_rev_deposit_stake_unchecked(tokens_out, unstaked_lamports)
+            .ok_or(SplStakePoolError::CalculationFailure)
+    }
+
+    /// Reverse of [`Self::quote_deposit_stake_unchecked`]: returns the quote for
+    /// the minimum staked lamports required to receive at least `tokens_out` pool
+    /// tokens, given fixed unstaked lamports already in the stake account.
+    ///
+    /// Returns `None` on arithmetic overflow or if `tokens_out` is unachievable.
+    ///
+    /// NB: returned quote might not be applicable if:
+    /// - pool has not been updated for the current epoch
+    /// - selected validator is not active
+    /// - selected validator has insufficient stake
+    /// - selected validator is not in the validator list
+    /// - selected validator is not the preferred validator
+    #[inline]
+    pub fn quote_rev_deposit_stake_unchecked(
+        &self,
+        tokens_out: u64,
+        unstaked_lamports: u64,
+    ) -> Option<DepositStakeQuote> {
+        let quote_for_staked = |staked| {
+            self.quote_deposit_stake_unchecked(StakeAccountLamports {
+                staked,
+                unstaked: unstaked_lamports,
+            })
+        };
+
+        if self.stake_deposit_fee.is_zero() && self.sol_deposit_fee.is_zero() {
+            let min_total_lamports = *self.rev_lamports_to_pool_tokens(tokens_out)?.start();
+            let staked = min_total_lamports.saturating_sub(unstaked_lamports);
+            let quote = quote_for_staked(staked)?;
+            return (quote.tokens_out >= tokens_out).then_some(quote);
+        }
+
+        let mut lo = 0;
+        let mut hi = u64::MAX.checked_sub(unstaked_lamports)?;
+        let mut best = None;
+
+        while lo <= hi {
+            let mid = lo + (hi - lo) / 2;
+            match quote_for_staked(mid) {
+                Some(quote) if quote.tokens_out >= tokens_out => {
+                    best = Some(quote);
+                    if mid == 0 {
+                        break;
+                    }
+                    hi = mid - 1;
+                }
+                Some(_) => {
+                    lo = mid.checked_add(1)?;
+                }
+                None => {
+                    if mid == 0 {
+                        break;
+                    }
+                    hi = mid - 1;
+                }
+            }
+        }
+
+        best
+    }
+
+    /// Performs the checks needed to be serviceable along with calculation logic
+    #[inline]
     pub fn quote_withdraw_sol(
         &self,
         pool_tokens: u64,
@@ -565,6 +656,21 @@ impl StakePool {
             return Some(lamports);
         }
         ratio.apply(lamports)
+    }
+
+    /// Given output `pool_tokens`, return range of `lamports`
+    /// that may have been fed into [`Self::lamports_to_pool_tokens`]
+    /// This may yield a different result from [`Self::pool_tokens_to_lamports`]
+    #[inline]
+    pub const fn rev_lamports_to_pool_tokens(
+        &self,
+        pool_tokens: u64,
+    ) -> Option<RangeInclusive<u64>> {
+        let ratio = self.supply_over_lamports();
+        if ratio.0.is_zero() {
+            return Some(pool_tokens..=pool_tokens);
+        }
+        ratio.reverse_est(pool_tokens)
     }
 
     /// Returns the number of lamports equivalent to `pool tokens`

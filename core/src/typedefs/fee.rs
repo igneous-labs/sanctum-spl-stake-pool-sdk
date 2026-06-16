@@ -24,6 +24,11 @@ impl Fee {
     };
 
     #[inline]
+    pub const fn is_zero(&self) -> bool {
+        self.numerator == 0 || self.denominator == 0
+    }
+
+    #[inline]
     pub const fn to_fee_ceil(&self) -> Option<F> {
         // The SPL stake pool program permits denominator to = 0
         // (treated as 0 fee in that case)

@@ -13,6 +13,7 @@ import {
   initSyncEmbed,
   quoteDepositSol,
   quoteDepositStake,
+  quoteRevDepositStake,
   quoteWithdrawSol,
   quoteWithdrawStake,
   withdrawSolIxFromStakePool,
@@ -49,6 +50,38 @@ initSyncEmbed();
 describe("picosol-quote-sim-local", async () => {
   // For some reason the first sequential test always take a long time
   // ~10s to complete, regardless of which user action it is (deposit/withdraw sol/stake)
+
+  it("quoteRevDepositStake roundtrip", async () => {
+    const DEPOSIT_STAKE_LAMPORTS = {
+      staked: 100_000_000_000n,
+      unstaked: 2282880n,
+    };
+
+    const rpcClient = createSolanaRpc("http://localhost:8899");
+    const accountJson = readTestFixturesJsonFile("picosol-stake-pool");
+    const stakePoolHandle = await fetchStakePool(
+      rpcClient,
+      address(accountJson.pubkey)
+    );
+
+    const quote = quoteDepositStake(stakePoolHandle, DEPOSIT_STAKE_LAMPORTS);
+    const reverseQuote = quoteRevDepositStake(
+      stakePoolHandle,
+      quote.tokensOut,
+      DEPOSIT_STAKE_LAMPORTS.unstaked
+    );
+    const reverseForwardQuote = quoteDepositStake(
+      stakePoolHandle,
+      reverseQuote.stakeAccountLamportsIn
+    );
+
+    assert.strictEqual(
+      reverseQuote.stakeAccountLamportsIn.unstaked,
+      DEPOSIT_STAKE_LAMPORTS.unstaked
+    );
+    assert(reverseQuote.tokensOut >= quote.tokensOut);
+    assert.strictEqual(reverseForwardQuote.tokensOut, reverseQuote.tokensOut);
+  });
 
   it.sequential("deposit-sol", async () => {
     const keypair = await readTestFixturesKeypair("signer");

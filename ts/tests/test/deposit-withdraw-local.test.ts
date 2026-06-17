@@ -16,6 +16,7 @@ import {
   quoteRevDepositStake,
   quoteWithdrawSol,
   quoteWithdrawStake,
+  setStakePool,
   withdrawSolIxFromStakePool,
   withdrawStakeIxFromStakePool,
 } from "@sanctumso/spl-stake-pool";
@@ -63,6 +64,13 @@ describe("picosol-quote-sim-local", async () => {
       rpcClient,
       address(accountJson.pubkey)
     );
+
+    // quoteRevDepositStake only supports zero deposit fees
+    setStakePool(stakePoolHandle, {
+      ...getStakePool(stakePoolHandle),
+      stakeDepositFee: { numerator: 0n, denominator: 0n },
+      solDepositFee: { numerator: 0n, denominator: 0n },
+    });
 
     const quote = quoteDepositStake(stakePoolHandle, DEPOSIT_STAKE_LAMPORTS);
     const reverseQuote = quoteRevDepositStake(

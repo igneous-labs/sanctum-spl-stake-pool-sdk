@@ -335,11 +335,15 @@ impl StakePool {
             .ok_or(SplStakePoolError::CalculationFailure)
     }
 
-    /// Reverse of [`Self::quote_deposit_stake_unchecked`]: returns the quote for
-    /// the minimum staked lamports required to receive at least `tokens_out` pool
-    /// tokens, given fixed unstaked lamports already in the stake account.
+    /// Reverse of [`Self::quote_deposit_stake_unchecked`]: given a target
+    /// `tokens_out` and fixed `unstaked_lamports`, returns the minimum staked
+    /// lamports required to receive at least `tokens_out` pool tokens.
     ///
-    /// Returns `None` on arithmetic overflow or if `tokens_out` is unachievable.
+    /// Returns `None` on arithmetic overflow, if `tokens_out` is unachievable,
+    /// or if either `stake_deposit_fee` or `sol_deposit_fee` is non-zero.
+    /// Non-zero fees have no closed-form inverse (the unstaked token contribution
+    /// `floor((staked+u)*r) - floor(staked*r)` is non-monotonic in `staked`),
+    /// and binary search is also incorrect for the same reason.
     ///
     /// NB: returned quote might not be applicable if:
     /// - pool has not been updated for the current epoch
@@ -353,6 +357,12 @@ impl StakePool {
         tokens_out: u64,
         unstaked_lamports: u64,
     ) -> Option<DepositStakeQuote> {
+        // No closed-form inverse and binary search both fail for non-zero fees
+        // See doc comment
+        if !self.stake_deposit_fee.is_zero() || !self.sol_deposit_fee.is_zero() {
+            return None;
+        }
+
         let quote_for_staked = |staked| {
             self.quote_deposit_stake_unchecked(StakeAccountLamports {
                 staked,
@@ -360,40 +370,10 @@ impl StakePool {
             })
         };
 
-        if self.stake_deposit_fee.is_zero() && self.sol_deposit_fee.is_zero() {
-            let min_total_lamports = *self.rev_lamports_to_pool_tokens(tokens_out)?.start();
-            let staked = min_total_lamports.saturating_sub(unstaked_lamports);
-            let quote = quote_for_staked(staked)?;
-            return (quote.tokens_out >= tokens_out).then_some(quote);
-        }
-
-        let mut lo = 0;
-        let mut hi = u64::MAX.checked_sub(unstaked_lamports)?;
-        let mut best = None;
-
-        while lo <= hi {
-            let mid = lo + (hi - lo) / 2;
-            match quote_for_staked(mid) {
-                Some(quote) if quote.tokens_out >= tokens_out => {
-                    best = Some(quote);
-                    if mid == 0 {
-                        break;
-                    }
-                    hi = mid - 1;
-                }
-                Some(_) => {
-                    lo = mid.checked_add(1)?;
-                }
-                None => {
-                    if mid == 0 {
-                        break;
-                    }
-                    hi = mid - 1;
-                }
-            }
-        }
-
-        best
+        let min_total_lamports = *self.rev_lamports_to_pool_tokens(tokens_out)?.start();
+        let staked = min_total_lamports.saturating_sub(unstaked_lamports);
+        let quote = quote_for_staked(staked)?;
+        (quote.tokens_out >= tokens_out).then_some(quote)
     }
 
     /// Performs the checks needed to be serviceable along with calculation logic

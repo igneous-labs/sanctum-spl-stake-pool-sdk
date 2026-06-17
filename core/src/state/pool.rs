@@ -336,14 +336,17 @@ impl StakePool {
     }
 
     /// Reverse of [`Self::quote_deposit_stake_unchecked`]: given a target
-    /// `tokens_out` and fixed `unstaked_lamports`, returns the minimum staked
-    /// lamports required to receive at least `tokens_out` pool tokens.
+    /// `tokens_out` and fixed `unstaked_lamports`, returns a conservative
+    /// staked lamports amount sufficient to receive at least `tokens_out` pool tokens.
     ///
-    /// Returns `None` on arithmetic overflow, if `tokens_out` is unachievable,
-    /// or if either `stake_deposit_fee` or `sol_deposit_fee` is non-zero.
-    /// Non-zero fees have no closed-form inverse (the unstaked token contribution
-    /// `floor((staked+u)*r) - floor(staked*r)` is non-monotonic in `staked`),
-    /// and binary search is also incorrect for the same reason.
+    /// Returns `None` on arithmetic overflow or if `tokens_out` is unachievable.
+    ///
+    /// For zero deposit fees, this returns the exact minimum. For nonzero fees,
+    /// this is conservative and may overestimate because it ignores combined
+    /// `staked + unstaked` rounding. The overestimate is at most the staked
+    /// lamports needed for one pool-token base unit after stake fees. This returns
+    /// `None` when a positive staked contribution is required but
+    /// `stake_deposit_fee` is effectively 100%.
     ///
     /// NB: returned quote might not be applicable if:
     /// - pool has not been updated for the current epoch
@@ -357,22 +360,34 @@ impl StakePool {
         tokens_out: u64,
         unstaked_lamports: u64,
     ) -> Option<DepositStakeQuote> {
-        // No closed-form inverse and binary search both fail for non-zero fees
-        // See doc comment
-        if !self.stake_deposit_fee.is_zero() || !self.sol_deposit_fee.is_zero() {
-            return None;
-        }
-
-        let quote_for_staked = |staked| {
-            self.quote_deposit_stake_unchecked(StakeAccountLamports {
+        if self.stake_deposit_fee.is_zero() && self.sol_deposit_fee.is_zero() {
+            let min_total_lamports = *self.rev_lamports_to_pool_tokens(tokens_out)?.start();
+            let staked = min_total_lamports.saturating_sub(unstaked_lamports);
+            let quote = self.quote_deposit_stake_unchecked(StakeAccountLamports {
                 staked,
                 unstaked: unstaked_lamports,
-            })
-        };
+            })?;
+            return (quote.tokens_out >= tokens_out).then_some(quote);
+        }
 
-        let min_total_lamports = *self.rev_lamports_to_pool_tokens(tokens_out)?.start();
-        let staked = min_total_lamports.saturating_sub(unstaked_lamports);
-        let quote = quote_for_staked(staked)?;
+        let stake_fee = self.stake_deposit_fee.to_fee_ceil()?;
+        let sol_fee = self.sol_deposit_fee.to_fee_ceil()?;
+
+        // Use the token value of unstaked lamports alone as a conservative lower
+        // bound. The actual deposit may receive one extra pool-token base unit
+        // from combined staked + unstaked floor rounding, so this can overestimate
+        // by amount of SOL lamports required for the 1 additional pool token.
+        let sol_tokens_lo = self.lamports_to_pool_tokens(unstaked_lamports)?;
+        let sol_after_fee_lo = sol_fee.apply(sol_tokens_lo)?.rem();
+        let required_stake_after_fee = tokens_out.saturating_sub(sol_after_fee_lo);
+        let stake_tokens = *stake_fee
+            .reverse_from_rem(required_stake_after_fee)?
+            .start();
+        let staked = *self.rev_lamports_to_pool_tokens(stake_tokens)?.start();
+        let quote = self.quote_deposit_stake_unchecked(StakeAccountLamports {
+            staked,
+            unstaked: unstaked_lamports,
+        })?;
         (quote.tokens_out >= tokens_out).then_some(quote)
     }
 

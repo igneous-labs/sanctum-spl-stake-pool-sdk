@@ -52,7 +52,7 @@ describe("picosol-quote-sim-local", async () => {
   // For some reason the first sequential test always take a long time
   // ~10s to complete, regardless of which user action it is (deposit/withdraw sol/stake)
 
-  it("quoteRevDepositStake roundtrip", async () => {
+  it.sequential("quoteRevDepositStake roundtrip", async () => {
     const DEPOSIT_STAKE_LAMPORTS = {
       staked: 100_000_000_000n,
       unstaked: 2282880n,

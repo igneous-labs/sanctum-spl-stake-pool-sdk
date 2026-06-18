@@ -1,6 +1,6 @@
 use sanctum_spl_stake_pool_core::{
-    AccountType, DepositSolQuote, DepositStakeQuote, Fee, FutureEpoch, StakeAccountLamports,
-    WithdrawSolQuote, WithdrawStakeQuote,
+    AccountType, DepositSolQuote, DepositStakeQuote, Fee, FutureEpoch, QuoteRevDepositStakeArgs,
+    StakeAccountLamports, WithdrawSolQuote, WithdrawStakeQuote,
 };
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
@@ -73,7 +73,10 @@ pub fn quote_rev_deposit_stake(
     unstaked_lamports: u64,
 ) -> Result<DepositStakeQuote, JsError> {
     this.0
-        .quote_rev_deposit_stake_unchecked(tokens_out, unstaked_lamports)
+        .quote_rev_deposit_stake_unchecked(QuoteRevDepositStakeArgs {
+            tokens_out,
+            unstaked_lamports: Some(unstaked_lamports),
+        })
         .ok_or_else(arithmetic_overflow_err)
 }
 

@@ -5,9 +5,10 @@ use sanctum_u64_ratio::{Floor, Ratio};
 
 use crate::{
     reserve_has_sufficient_lamports, AccountType, DepositSolQuote, DepositSolQuoteArgs,
-    DepositStakeQuote, DepositStakeQuoteArgs, Fee, FutureEpoch, Lockup, ReferralFee,
-    SplStakePoolError, StakeAccountLamports, StakeStatus, WithdrawSolQuote, WithdrawSolQuoteArgs,
-    WithdrawStakeQuote, WithdrawStakeQuoteArgs,
+    DepositStakeQuote, DepositStakeQuoteArgs, Fee, FutureEpoch, Lockup, QuoteRevDepositStakeArgs,
+    ReferralFee, SplStakePoolError, StakeAccountLamports, StakeStatus, WithdrawSolQuote,
+    WithdrawSolQuoteArgs, WithdrawStakeQuote, WithdrawStakeQuoteArgs,
+    STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS,
 };
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
@@ -276,7 +277,7 @@ impl StakePool {
         &self,
         stake_account_lamports: StakeAccountLamports,
     ) -> Option<DepositStakeQuote> {
-        let new_pool_tokens = self.lamports_to_pool_tokens(stake_account_lamports.total())?;
+        let new_pool_tokens = self.lamports_to_pool_tokens(stake_account_lamports.total()?)?;
         let new_pool_tokens_from_stake =
             self.lamports_to_pool_tokens(stake_account_lamports.staked)?;
         let new_pool_tokens_from_sol = new_pool_tokens.checked_sub(new_pool_tokens_from_stake)?;
@@ -309,8 +310,10 @@ impl StakePool {
     #[inline]
     pub fn quote_rev_deposit_stake(
         &self,
-        tokens_out: u64,
-        unstaked_lamports: u64,
+        QuoteRevDepositStakeArgs {
+            tokens_out,
+            unstaked_lamports,
+        }: QuoteRevDepositStakeArgs,
         DepositStakeQuoteArgs {
             validator_status,
             validator_vote,
@@ -331,8 +334,11 @@ impl StakePool {
             return Err(SplStakePoolError::InvalidStakeDepositAuthority);
         }
 
-        self.quote_rev_deposit_stake_unchecked(tokens_out, unstaked_lamports)
-            .ok_or(SplStakePoolError::CalculationFailure)
+        self.quote_rev_deposit_stake_unchecked(QuoteRevDepositStakeArgs {
+            tokens_out,
+            unstaked_lamports,
+        })
+        .ok_or(SplStakePoolError::CalculationFailure)
     }
 
     /// Reverse of [`Self::quote_deposit_stake_unchecked`]: given a target
@@ -341,8 +347,7 @@ impl StakePool {
     ///
     /// Returns `None` on arithmetic overflow or if `tokens_out` is unachievable.
     ///
-    /// For zero deposit fees, this returns the exact minimum. For nonzero fees,
-    /// this is conservative and may overestimate because it ignores combined
+    /// This is conservative and may overestimate because it ignores combined
     /// `staked + unstaked` rounding. The overestimate is at most the staked
     /// lamports needed for one pool-token base unit after stake fees. This returns
     /// `None` when a positive staked contribution is required but
@@ -357,19 +362,12 @@ impl StakePool {
     #[inline]
     pub fn quote_rev_deposit_stake_unchecked(
         &self,
-        tokens_out: u64,
-        unstaked_lamports: u64,
+        QuoteRevDepositStakeArgs {
+            tokens_out,
+            unstaked_lamports,
+        }: QuoteRevDepositStakeArgs,
     ) -> Option<DepositStakeQuote> {
-        if self.stake_deposit_fee.is_zero() && self.sol_deposit_fee.is_zero() {
-            let min_total_lamports = *self.rev_lamports_to_pool_tokens(tokens_out)?.start();
-            let staked = min_total_lamports.saturating_sub(unstaked_lamports);
-            let quote = self.quote_deposit_stake_unchecked(StakeAccountLamports {
-                staked,
-                unstaked: unstaked_lamports,
-            })?;
-            return (quote.tokens_out >= tokens_out).then_some(quote);
-        }
-
+        let unstaked_lamports = unstaked_lamports.unwrap_or(STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS);
         let stake_fee = self.stake_deposit_fee.to_fee_ceil()?;
         let sol_fee = self.sol_deposit_fee.to_fee_ceil()?;
 

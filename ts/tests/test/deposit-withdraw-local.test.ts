@@ -65,7 +65,6 @@ describe("picosol-quote-sim-local", async () => {
       address(accountJson.pubkey)
     );
 
-    // quoteRevDepositStake only supports zero deposit fees
     setStakePool(stakePoolHandle, {
       ...getStakePool(stakePoolHandle),
       stakeDepositFee: { numerator: 0n, denominator: 0n },
@@ -83,12 +82,8 @@ describe("picosol-quote-sim-local", async () => {
       reverseQuote.stakeAccountLamportsIn
     );
 
-    assert.strictEqual(
-      reverseQuote.stakeAccountLamportsIn.unstaked,
-      DEPOSIT_STAKE_LAMPORTS.unstaked
-    );
-    assert(reverseQuote.tokensOut >= quote.tokensOut);
-    assert.strictEqual(reverseForwardQuote.tokensOut, reverseQuote.tokensOut);
+    assert.deepStrictEqual(reverseQuote, quote);
+    assert.deepStrictEqual(reverseForwardQuote, quote);
   });
 
   it.sequential("deposit-sol", async () => {

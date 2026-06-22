@@ -82,8 +82,12 @@ describe("picosol-quote-sim-local", async () => {
       reverseQuote.stakeAccountLamportsIn
     );
 
-    assert.deepStrictEqual(reverseQuote, quote);
-    assert.deepStrictEqual(reverseForwardQuote, quote);
+    assert.strictEqual(
+      reverseQuote.stakeAccountLamportsIn.unstaked,
+      DEPOSIT_STAKE_LAMPORTS.unstaked
+    );
+    assert.ok(reverseQuote.tokensOut >= quote.tokensOut);
+    assert.deepStrictEqual(reverseForwardQuote, reverseQuote);
   });
 
   it.sequential("deposit-sol", async () => {

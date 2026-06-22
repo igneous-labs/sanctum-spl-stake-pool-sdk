@@ -5,9 +5,10 @@ use sanctum_u64_ratio::{Floor, Ratio};
 
 use crate::{
     reserve_has_sufficient_lamports, AccountType, DepositSolQuote, DepositSolQuoteArgs,
-    DepositStakeQuote, DepositStakeQuoteArgs, Fee, FutureEpoch, Lockup, ReferralFee,
-    SplStakePoolError, StakeAccountLamports, StakeStatus, WithdrawSolQuote, WithdrawSolQuoteArgs,
-    WithdrawStakeQuote, WithdrawStakeQuoteArgs,
+    DepositStakeQuote, DepositStakeQuoteArgs, Fee, FutureEpoch, Lockup, QuoteRevDepositStakeArgs,
+    ReferralFee, SplStakePoolError, StakeAccountLamports, StakeStatus, WithdrawSolQuote,
+    WithdrawSolQuoteArgs, WithdrawStakeQuote, WithdrawStakeQuoteArgs,
+    STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS,
 };
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
@@ -276,7 +277,7 @@ impl StakePool {
         &self,
         stake_account_lamports: StakeAccountLamports,
     ) -> Option<DepositStakeQuote> {
-        let new_pool_tokens = self.lamports_to_pool_tokens(stake_account_lamports.total())?;
+        let new_pool_tokens = self.lamports_to_pool_tokens(stake_account_lamports.total()?)?;
         let new_pool_tokens_from_stake =
             self.lamports_to_pool_tokens(stake_account_lamports.staked)?;
         let new_pool_tokens_from_sol = new_pool_tokens.checked_sub(new_pool_tokens_from_stake)?;
@@ -303,6 +304,87 @@ impl StakePool {
             manager_fee: after_referral_fee.rem(),
             referral_fee: after_referral_fee.fee(),
         })
+    }
+
+    /// Performs the checks needed to be serviceable along with calculation logic
+    #[inline]
+    pub fn quote_rev_deposit_stake(
+        &self,
+        args: QuoteRevDepositStakeArgs,
+        DepositStakeQuoteArgs {
+            validator_status,
+            validator_vote,
+            current_epoch,
+            depositor,
+        }: &DepositStakeQuoteArgs,
+    ) -> Result<DepositStakeQuote, SplStakePoolError> {
+        if !self.is_updated_for_epoch(*current_epoch) {
+            return Err(SplStakePoolError::StakeListAndPoolOutOfDate);
+        }
+        if !self.can_deposit_stake_of(validator_vote) {
+            return Err(SplStakePoolError::IncorrectDepositVoteAddress);
+        }
+        if *validator_status != StakeStatus::Active {
+            return Err(SplStakePoolError::InvalidState);
+        }
+        if depositor.is_some_and(|d| *d != self.stake_deposit_authority) {
+            return Err(SplStakePoolError::InvalidStakeDepositAuthority);
+        }
+
+        self.quote_rev_deposit_stake_unchecked(args)
+            .ok_or(SplStakePoolError::CalculationFailure)
+    }
+
+    /// Reverse of [`Self::quote_deposit_stake_unchecked`]: given a target
+    /// `tokens_out` and fixed `unstaked_lamports`, returns a conservative
+    /// staked lamports amount sufficient to receive at least `tokens_out` pool tokens.
+    ///
+    /// Returns `None` on arithmetic overflow or if `tokens_out` is unachievable.
+    ///
+    /// This is conservative and may overestimate because it ignores combined
+    /// `staked + unstaked` floor rounding. The output `tokens_out` can exceed
+    /// the requested amount by at most `floor(pool_token_supply / total_lamports) + 1`
+    /// - `floor(pool_token_supply / total_lamports)` from `rev_lamports_to_pool_tokens`
+    ///   landing on a skipped pool-token value in ratio-lte-one pools
+    /// - `1` from the conservative `sol_lo` estimate
+    ///
+    /// Returns `None` when a positive staked contribution is required but
+    /// `stake_deposit_fee` is effectively 100%.
+    ///
+    /// NB: returned quote might not be applicable if:
+    /// - pool has not been updated for the current epoch
+    /// - selected validator is not active
+    /// - selected validator has insufficient stake
+    /// - selected validator is not in the validator list
+    /// - selected validator is not the preferred validator
+    #[inline]
+    pub fn quote_rev_deposit_stake_unchecked(
+        &self,
+        QuoteRevDepositStakeArgs {
+            tokens_out,
+            unstaked_lamports,
+        }: QuoteRevDepositStakeArgs,
+    ) -> Option<DepositStakeQuote> {
+        let unstaked_lamports = unstaked_lamports.unwrap_or(STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS);
+        let stake_fee = self.stake_deposit_fee.to_fee_ceil()?;
+        let sol_fee = self.sol_deposit_fee.to_fee_ceil()?;
+
+        // Use the token value of unstaked lamports alone as a conservative lower
+        // bound. The actual deposit may receive one extra pool-token base unit
+        // from combined staked + unstaked floor rounding, so this can overestimate
+        // by amount of SOL lamports required for the 1 additional pool token.
+        let sol_tokens_lo = self.lamports_to_pool_tokens(unstaked_lamports)?;
+        let sol_after_fee_lo = sol_fee.apply(sol_tokens_lo)?.rem();
+        let required_stake_after_fee = tokens_out.saturating_sub(sol_after_fee_lo);
+        let stake_tokens = *stake_fee
+            .reverse_from_rem(required_stake_after_fee)?
+            .start();
+        let staked = *self.rev_lamports_to_pool_tokens(stake_tokens)?.start();
+        let quote = self.quote_deposit_stake_unchecked(StakeAccountLamports {
+            staked,
+            unstaked: unstaked_lamports,
+        })?;
+        (quote.tokens_out >= tokens_out).then_some(quote)
     }
 
     /// Performs the checks needed to be serviceable along with calculation logic
@@ -565,6 +647,21 @@ impl StakePool {
             return Some(lamports);
         }
         ratio.apply(lamports)
+    }
+
+    /// Given output `pool_tokens`, return range of `lamports`
+    /// that may have been fed into [`Self::lamports_to_pool_tokens`]
+    /// This may yield a different result from [`Self::pool_tokens_to_lamports`]
+    #[inline]
+    pub const fn rev_lamports_to_pool_tokens(
+        &self,
+        pool_tokens: u64,
+    ) -> Option<RangeInclusive<u64>> {
+        let ratio = self.supply_over_lamports();
+        if ratio.0.is_zero() {
+            return Some(pool_tokens..=pool_tokens);
+        }
+        ratio.reverse_est(pool_tokens)
     }
 
     /// Returns the number of lamports equivalent to `pool tokens`

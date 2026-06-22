@@ -310,10 +310,7 @@ impl StakePool {
     #[inline]
     pub fn quote_rev_deposit_stake(
         &self,
-        QuoteRevDepositStakeArgs {
-            tokens_out,
-            unstaked_lamports,
-        }: QuoteRevDepositStakeArgs,
+        args: QuoteRevDepositStakeArgs,
         DepositStakeQuoteArgs {
             validator_status,
             validator_vote,
@@ -334,11 +331,8 @@ impl StakePool {
             return Err(SplStakePoolError::InvalidStakeDepositAuthority);
         }
 
-        self.quote_rev_deposit_stake_unchecked(QuoteRevDepositStakeArgs {
-            tokens_out,
-            unstaked_lamports,
-        })
-        .ok_or(SplStakePoolError::CalculationFailure)
+        self.quote_rev_deposit_stake_unchecked(args)
+            .ok_or(SplStakePoolError::CalculationFailure)
     }
 
     /// Reverse of [`Self::quote_deposit_stake_unchecked`]: given a target
@@ -348,9 +342,13 @@ impl StakePool {
     /// Returns `None` on arithmetic overflow or if `tokens_out` is unachievable.
     ///
     /// This is conservative and may overestimate because it ignores combined
-    /// `staked + unstaked` rounding. The overestimate is at most the staked
-    /// lamports needed for one pool-token base unit after stake fees. This returns
-    /// `None` when a positive staked contribution is required but
+    /// `staked + unstaked` floor rounding. The output `tokens_out` can exceed
+    /// the requested amount by at most `floor(pool_token_supply / total_lamports) + 1`
+    /// - `floor(pool_token_supply / total_lamports)` from `rev_lamports_to_pool_tokens`
+    ///   landing on a skipped pool-token value in ratio-lte-one pools
+    /// - `1` from the conservative `sol_lo` estimate
+    ///
+    /// Returns `None` when a positive staked contribution is required but
     /// `stake_deposit_fee` is effectively 100%.
     ///
     /// NB: returned quote might not be applicable if:

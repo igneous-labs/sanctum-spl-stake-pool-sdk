@@ -147,6 +147,16 @@ pub struct WithdrawStakeQuoteArgs {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
+#[cfg_attr(
+    feature = "wasm",
+    derive(tsify_next::Tsify),
+    tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
+)]
 pub struct QuoteRevDepositStakeArgs {
     pub tokens_out: u64,
     /// `None` defaults to `STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS`

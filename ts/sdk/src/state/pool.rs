@@ -69,14 +69,10 @@ pub fn quote_deposit_stake(
 #[wasm_bindgen(js_name = quoteRevDepositStake)]
 pub fn quote_rev_deposit_stake(
     this: &StakePoolHandle,
-    tokens_out: u64,
-    unstaked_lamports: u64,
+    args: QuoteRevDepositStakeArgs,
 ) -> Result<DepositStakeQuote, JsError> {
     this.0
-        .quote_rev_deposit_stake_unchecked(QuoteRevDepositStakeArgs {
-            tokens_out,
-            unstaked_lamports: Some(unstaked_lamports),
-        })
+        .quote_rev_deposit_stake_unchecked(args)
         .ok_or_else(arithmetic_overflow_err)
 }
 

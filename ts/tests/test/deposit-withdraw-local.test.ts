@@ -72,11 +72,10 @@ describe("picosol-quote-sim-local", async () => {
     });
 
     const quote = quoteDepositStake(stakePoolHandle, DEPOSIT_STAKE_LAMPORTS);
-    const reverseQuote = quoteRevDepositStake(
-      stakePoolHandle,
-      quote.tokensOut,
-      DEPOSIT_STAKE_LAMPORTS.unstaked
-    );
+    const reverseQuote = quoteRevDepositStake(stakePoolHandle, {
+      tokensOut: quote.tokensOut,
+      unstakedLamports: DEPOSIT_STAKE_LAMPORTS.unstaked,
+    });
     const reverseForwardQuote = quoteDepositStake(
       stakePoolHandle,
       reverseQuote.stakeAccountLamportsIn

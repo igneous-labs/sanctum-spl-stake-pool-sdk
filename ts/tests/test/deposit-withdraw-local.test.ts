@@ -72,11 +72,10 @@ describe("picosol-quote-sim-local", async () => {
     });
 
     const quote = quoteDepositStake(stakePoolHandle, DEPOSIT_STAKE_LAMPORTS);
-    const reverseQuote = quoteRevDepositStake(
-      stakePoolHandle,
-      quote.tokensOut,
-      DEPOSIT_STAKE_LAMPORTS.unstaked
-    );
+    const reverseQuote = quoteRevDepositStake(stakePoolHandle, {
+      tokensOut: quote.tokensOut,
+      unstakedLamports: DEPOSIT_STAKE_LAMPORTS.unstaked,
+    });
     const reverseForwardQuote = quoteDepositStake(
       stakePoolHandle,
       reverseQuote.stakeAccountLamportsIn
@@ -88,6 +87,16 @@ describe("picosol-quote-sim-local", async () => {
     );
     assert.ok(reverseQuote.tokensOut >= quote.tokensOut);
     assert.deepStrictEqual(reverseForwardQuote, reverseQuote);
+
+    // null unstakedLamports should default to STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS (2_282_880)
+    const reverseQuoteDefaultUnstaked = quoteRevDepositStake(stakePoolHandle, {
+      tokensOut: quote.tokensOut,
+      unstakedLamports: undefined,
+    });
+    assert.strictEqual(
+      reverseQuoteDefaultUnstaked.stakeAccountLamportsIn.unstaked,
+      2_282_880n
+    );
   });
 
   it.sequential("deposit-sol", async () => {

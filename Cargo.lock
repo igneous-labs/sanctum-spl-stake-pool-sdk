@@ -709,7 +709,7 @@ dependencies = [
 
 [[package]]
 name = "spl-stake-pool"
-version = "0.0.1-dev-9"
+version = "0.0.1-dev-10"
 dependencies = [
  "borsh",
  "bs58",
